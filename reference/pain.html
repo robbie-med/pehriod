@@ -1,0 +1,184 @@
+	<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Medication Timeline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #f3f4f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+
+  h1 {
+    margin: 0 0 24px 0;
+    font-size: 1.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    row-gap: 18px;
+    align-items: center;
+  }
+
+  .time {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .slot {
+    position: relative;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 26px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    z-index: 0;
+  }
+
+  .label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.95rem;
+    color: #111827;
+    margin-left: 8px;
+  }
+
+  /* pill visuals */
+  .pill {
+    position: relative;
+    z-index: 2;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: 1px solid rgba(0,0,0,0.15);
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
+    white-space: nowrap;
+  }
+
+  .pamprin {
+    background: #e6c6d8;
+    color: #4a1d32;
+  }
+
+  .pamprin-max {
+    background: #f4a6b5;
+    color: #4a1d32;
+  }
+
+  .midol {
+    background: #ffffff;
+    color: #1e3a8a;
+    border: 2px solid #1e3a8a;
+  }
+
+  .ibuprofen {
+    background: #c2410c;
+    color: white;
+  }
+
+  .acetaminophen {
+    background: #dc2626;
+    color: white;
+  }
+
+  .warning {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-left: 8px;
+  }
+
+  .note {
+    margin-top: 32px;
+    padding: 16px;
+    border: 2px dashed #f59e0b;
+    border-radius: 10px;
+    background: #fffbeb;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+
+<body>
+  <div class="page">
+    <h1>Medication Schedule</h1>
+
+    <div class="grid">
+
+      <div class="time">01:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Pamprin Multi-Symptom</span>
+        <span class="pill pamprin">P-P</span>
+      </div>
+
+      <div class="time">05:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Ibuprofen</span>
+        <span class="pill ibuprofen">Ibu</span>
+      </div>
+
+      <div class="time">09:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Pamprin Max Pain + Energy</span>
+        <span class="pill pamprin-max">MAX</span>
+        <span class="pill midol">MIDOL</span>
+        <span class="warning">NOT BOTH</span>
+      </div>
+
+      <div class="time">13:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Ibuprofen</span>
+        <span class="pill ibuprofen">Ibu</span>
+      </div>
+
+      <div class="time">17:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Acetaminophen</span>
+        <span class="pill acetaminophen">APAP</span>
+      </div>
+
+      <div class="time">21:00</div>
+      <div class="slot">
+        <div class="bar"></div>
+        <span class="label">Ibuprofen</span>
+        <span class="pill ibuprofen">Ibu</span>
+      </div>
+
+    </div>
+
+    <div class="note">
+      ⚠ Use only one Pamprin product at a time.  
+      Respect total daily dose limits.
+    </div>
+  </div>
+</body>
+</html>
