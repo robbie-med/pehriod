@@ -31,3 +31,7 @@ ts-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OS/temp
+nul
+Thumbs.db

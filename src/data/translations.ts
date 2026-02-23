@@ -29,6 +29,35 @@ export const translations = {
     symptom_log: "Log Symptoms",
     pain_level: "Pain Level",
     note: "Use only one Pamprin product at a time. Respect total daily dose limits.",
+
+    // New translation keys
+    med_pamprin_multi: "Pamprin Multi-Symptom",
+    med_pamprin_max: "Pamprin Max Pain + Energy",
+    med_midol_complete: "Midol Complete",
+    med_ibuprofen: "Ibuprofen",
+    med_acetaminophen: "Acetaminophen",
+
+    med_pamprin_multi_desc: "Contains: Acetaminophen (Pain), Pamabrom (Diuretic), Pyrilamine Maleate (Antihistamine).",
+    med_pamprin_max_desc: "Contains: Acetaminophen, Aspirin, Caffeine for pain and energy.",
+    med_midol_complete_desc: "Contains: Acetaminophen, Caffeine, Pyrilamine Maleate.",
+    med_ibuprofen_desc: "Nonsteroidal anti-inflammatory drug (NSAID).",
+    med_acetaminophen_desc: "Pain reliever and fever reducer.",
+
+    ingredient_acetaminophen: "Acetaminophen",
+    ingredient_ibuprofen: "Ibuprofen",
+    ingredient_aspirin: "Aspirin",
+    ingredient_caffeine: "Caffeine",
+    ingredient_pamabrom: "Pamabrom",
+    ingredient_pyrilamine: "Pyrilamine Maleate",
+
+    total_24hr: "24-Hour Totals",
+    choose_one: "Choose one",
+    confirm_intake: "Confirm",
+    cancel: "Cancel",
+    delete: "Delete",
+    no_history: "No medication history yet",
+    education_title: "Understanding Period Pain",
+    education_content: "Dysmenorrhea (painful periods) is caused by prostaglandins, chemicals that trigger muscle contractions in your uterus. Over-the-counter pain medications work by blocking prostaglandin production or reducing inflammation.",
   },
   ko: {
     title: "생리통 관리",
