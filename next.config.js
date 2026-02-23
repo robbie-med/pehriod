@@ -4,8 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/pehriod' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/pehriod/' : '',
+  basePath: '/pehriod',
   trailingSlash: true,
 };
 
