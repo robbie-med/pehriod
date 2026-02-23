@@ -6,6 +6,7 @@ import {
   DoseLimit,
   Recommendation,
   MedicationId,
+  SafetyViolation,
 } from './types';
 import { checkSafety } from './safetyChecker';
 
