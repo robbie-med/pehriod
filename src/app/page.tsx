@@ -11,6 +11,7 @@ import { clearAllStorage } from '../lib/storage';
 
 import { Header } from '../components/ui/Header';
 import { BottomNav, TabType } from '../components/ui/BottomNav';
+import { BackupReminder } from '../components/ui/BackupReminder';
 import { TodayDashboard } from '../components/today/TodayDashboard';
 import { CycleTracker } from '../components/cycle/CycleTracker';
 import { MedLogger } from '../components/meds/MedLogger';
@@ -24,7 +25,7 @@ export default function Home() {
   const { intakeHistory, painLevel, setPainLevel, doseTotals, logIntake, deleteIntake, clearHistory } =
     useMedicationData();
 
-  const { cycles, stats, startPeriod, endPeriod, addPastCycle, logFlow, deleteCycle, saveDayLog, getDayLog } =
+  const { cycles, dayLogs, stats, startPeriod, endPeriod, addPastCycle, logFlow, deleteCycle, saveDayLog, getDayLog } =
     useCycleData();
 
   const t = translations[lang];
@@ -37,7 +38,6 @@ export default function Home() {
   const handleClearAll = () => {
     clearAllStorage();
     clearHistory();
-    // Reload to reset all hook state
     window.location.reload();
   };
 
@@ -54,6 +54,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <Header title={t.app_title} />
+      <BackupReminder lang={lang} />
 
       <main className="max-w-2xl mx-auto px-4 pt-4">
         {activeTab === 'today' && (
@@ -73,6 +74,7 @@ export default function Home() {
         {activeTab === 'cycle' && (
           <CycleTracker
             cycles={cycles}
+            dayLogs={dayLogs}
             stats={stats}
             onStartPeriod={startPeriod}
             onEndPeriod={endPeriod}
@@ -100,6 +102,10 @@ export default function Home() {
             lang={lang}
             onLanguageChange={setLang}
             onClearAll={handleClearAll}
+            cycles={cycles}
+            stats={stats}
+            intakeHistory={intakeHistory}
+            dayLogs={dayLogs}
           />
         )}
       </main>

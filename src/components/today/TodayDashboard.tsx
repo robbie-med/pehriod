@@ -5,6 +5,7 @@ import { CycleStats, IntakeRecord, DayLog, SymptomType, MoodType } from '../../l
 import { MEDICATIONS } from '../../lib/medications';
 import { daysUntil, todayISO } from '../../lib/cycleCalculator';
 import { translations, Language } from '../../data/translations';
+import { SmartDosePlan } from '../features/SmartDosePlan';
 
 interface Props {
   stats: CycleStats;
@@ -255,6 +256,9 @@ export function TodayDashboard({
           </div>
         )}
       </div>
+
+      {/* Smart dose plan */}
+      <SmartDosePlan intakeHistory={intakeHistory} lang={lang} />
     </div>
   );
 }

@@ -4,6 +4,8 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'pehriod_language',
   CYCLE_RECORDS: 'pehriod_cycles',
   DAY_LOGS: 'pehriod_day_logs',
+  LAST_BACKUP_REMINDER: 'pehriod_last_backup_remind',
+  BACKUP_REMINDER_DISABLED: 'pehriod_backup_remind_off',
 } as const;
 
 export function getStorageItem<T>(key: string, defaultValue: T): T {

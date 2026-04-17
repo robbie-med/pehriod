@@ -11,7 +11,7 @@ import { translations, Language } from '../../data/translations';
 interface Props {
   intakeHistory: IntakeRecord[];
   doseTotals: DoseTotals;
-  onLogIntake: (medId: MedicationId) => void;
+  onLogIntake: (medId: MedicationId, timestamp?: number) => void;
   onDeleteIntake: (id: string) => void;
   lang: Language;
 }
@@ -50,9 +50,17 @@ function formatDate(ts: number, lang: Language) {
   return d.toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
+function toDatetimeLocalValue(ts: number): string {
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteIntake, lang }: Props) {
   const t = translations[lang];
   const [confirmMed, setConfirmMed] = useState<MedicationId | null>(null);
+  const [overrideMed, setOverrideMed] = useState<MedicationId | null>(null);
+  const [logTime, setLogTime] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -67,7 +75,19 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
     };
   };
 
-  // Group history by date
+  const openConfirm = (medId: MedicationId) => {
+    setLogTime(toDatetimeLocalValue(Date.now()));
+    setConfirmMed(medId);
+  };
+
+  const handleLogConfirmed = () => {
+    if (!confirmMed) return;
+    const ts = logTime ? new Date(logTime).getTime() : Date.now();
+    onLogIntake(confirmMed, ts);
+    setConfirmMed(null);
+    setLogTime('');
+  };
+
   const sortedHistory = [...intakeHistory].sort((a, b) => b.timestamp - a.timestamp);
 
   const groupedHistory: { label: string; items: IntakeRecord[] }[] = [];
@@ -87,12 +107,10 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
 
   return (
     <div className="space-y-4">
-      {/* Medication cards */}
       {MEDICATIONS.map((med) => {
         const { ok, violations, waitMin } = getStatus(med.id as MedicationId);
         const warnings = violations.filter((v) => v.severity === 'warning');
         const errors = violations.filter((v) => v.severity === 'error');
-        const hoursSince = getHoursSinceLastDose(med.id, intakeHistory);
         const lastIntake = intakeHistory
           .filter((i) => i.medicationId === med.id)
           .sort((a, b) => b.timestamp - a.timestamp)[0];
@@ -101,10 +119,7 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
         const medDesc = t[med.descriptionKey as keyof typeof t] as string;
 
         return (
-          <div
-            key={med.id}
-            className={`rounded-xl border p-4 ${colorClass[med.color]}`}
-          >
+          <div key={med.id} className={`rounded-xl border p-4 ${colorClass[med.color]}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -133,19 +148,16 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
                   </div>
                 )}
                 {warnings.length > 0 && errors.length === 0 && (
-                  <p className="text-xs text-yellow-600 mt-1 ml-4">
-                    ⚠ {t.meds_warning}
-                  </p>
+                  <p className="text-xs text-yellow-600 mt-1 ml-4">⚠ {t.meds_warning}</p>
                 )}
               </div>
 
               <button
-                onClick={() => ok ? setConfirmMed(med.id as MedicationId) : null}
-                disabled={!ok}
+                onClick={() => ok ? openConfirm(med.id as MedicationId) : setOverrideMed(med.id as MedicationId)}
                 className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   ok
                     ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-400 border border-gray-200'
                 }`}
               >
                 {ok ? t.meds_log_dose : waitMin ? `${t.meds_wait} ${waitMin}m` : t.meds_blocked}
@@ -240,7 +252,34 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
         )}
       </div>
 
-      {/* Confirm modal */}
+      {/* Safety override modal */}
+      {overrideMed && (
+        <div className="fixed inset-0 bg-black/60 flex items-end justify-center z-50 pb-safe">
+          <div className="bg-white rounded-t-2xl w-full max-w-lg p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">⚠️</span>
+              <p className="text-base font-semibold text-red-700">{t.safety_override_title}</p>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">{t.safety_override_msg}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setOverrideMed(null)}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm"
+              >
+                {t.safety_override_cancel}
+              </button>
+              <button
+                onClick={() => { openConfirm(overrideMed); setOverrideMed(null); }}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold"
+              >
+                {t.safety_override_confirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm modal with retroactive time */}
       {confirmMed && (
         <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 pb-safe">
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6">
@@ -248,15 +287,28 @@ export function MedLogger({ intakeHistory, doseTotals, onLogIntake, onDeleteInta
             <p className="text-sm text-gray-600 mb-4">
               {t.meds_confirm_msg} {t[medNameKey(confirmMed)] as string}
             </p>
+
+            <div className="mb-4">
+              <label className="text-xs text-gray-500 block mb-1">{t.retro_time_label}</label>
+              <input
+                type="datetime-local"
+                value={logTime}
+                max={toDatetimeLocalValue(Date.now())}
+                onChange={(e) => setLogTime(e.target.value)}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-pink-300"
+              />
+              <p className="text-xs text-gray-400 mt-1">{t.retro_time_hint}</p>
+            </div>
+
             <div className="flex gap-3">
               <button
-                onClick={() => setConfirmMed(null)}
+                onClick={() => { setConfirmMed(null); setLogTime(''); }}
                 className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm"
               >
                 {t.meds_cancel}
               </button>
               <button
-                onClick={() => { onLogIntake(confirmMed); setConfirmMed(null); }}
+                onClick={handleLogConfirmed}
                 className="flex-1 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-medium"
               >
                 {t.meds_confirm}

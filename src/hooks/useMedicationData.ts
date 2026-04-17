@@ -18,12 +18,12 @@ export function useMedicationData() {
   const doseTotals = useDoseTotals(intakeHistory);
 
   const logIntake = useCallback(
-    (medicationId: MedicationId, customPainLevel?: number) => {
+    (medicationId: MedicationId, customTimestamp?: number) => {
       const newIntake: IntakeRecord = {
         id: crypto.randomUUID(),
         medicationId,
-        timestamp: Date.now(),
-        painLevel: customPainLevel ?? painLevel,
+        timestamp: customTimestamp ?? Date.now(),
+        painLevel: painLevel,
       };
       setIntakeHistory((prev) => [...prev, newIntake]);
     },

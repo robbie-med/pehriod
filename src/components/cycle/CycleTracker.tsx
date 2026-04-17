@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { CycleRecord, CycleStats, FlowLevel } from '../../lib/types';
+import { CycleRecord, CycleStats, FlowLevel, DayLog } from '../../lib/types';
 import { getPeriodDatesSet, todayISO, daysUntil, addDays } from '../../lib/cycleCalculator';
 import { translations, Language } from '../../data/translations';
+import { CycleInsights } from '../features/CycleInsights';
 
 interface Props {
   cycles: CycleRecord[];
+  dayLogs: DayLog[];
   stats: CycleStats;
   onStartPeriod: () => void;
   onEndPeriod: () => void;
@@ -33,7 +35,7 @@ const flowDot: Record<FlowLevel, string> = {
 };
 
 export function CycleTracker({
-  cycles, stats, onStartPeriod, onEndPeriod, onLogFlow,
+  cycles, dayLogs, stats, onStartPeriod, onEndPeriod, onLogFlow,
   onDeleteCycle, onAddPastCycle, lang,
 }: Props) {
   const t = translations[lang];
@@ -241,6 +243,9 @@ export function CycleTracker({
           </div>
         )}
       </div>
+
+      {/* Cycle insights */}
+      <CycleInsights cycles={cycles} dayLogs={dayLogs} lang={lang} />
 
       {/* Calendar */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
