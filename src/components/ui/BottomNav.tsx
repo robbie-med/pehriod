@@ -18,7 +18,7 @@ const TABS: { id: TabType; icon: keyof typeof Icons }[] = [
 
 export function BottomNav({ activeTab, onTabChange, labels }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center text-xs font-medium text-gray-500 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center text-xs font-medium text-gray-500" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
       {TABS.map(({ id, icon }) => {
         const Icon = Icons[icon];
         const active = activeTab === id;

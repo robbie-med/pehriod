@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { CycleRecord, DayLog, FlowLevel, SymptomType, MoodType } from '../lib/types';
+import { CycleRecord, DayLog, FlowLevel } from '../lib/types';
 import { STORAGE_KEYS } from '../lib/storage';
-import { getCycleStats, todayISO } from '../lib/cycleCalculator';
+import { getCycleStats, todayISO, getDatesInRange } from '../lib/cycleCalculator';
 
 export function useCycleData() {
   const [cycles, setCycles] = useLocalStorage<CycleRecord[]>(
@@ -19,7 +19,6 @@ export function useCycleData() {
 
   const startPeriod = useCallback(() => {
     const today = todayISO();
-    // Don't start if already ongoing
     if (cycles.some((c) => !c.endDate)) return;
     const newCycle: CycleRecord = {
       id: crypto.randomUUID(),
@@ -36,10 +35,26 @@ export function useCycleData() {
     );
   }, [setCycles]);
 
+  const addPastCycle = useCallback(
+    (startDate: string, endDate: string, defaultFlow: FlowLevel) => {
+      const flowByDay: Record<string, FlowLevel> = {};
+      getDatesInRange(startDate, endDate).forEach((d) => {
+        flowByDay[d] = defaultFlow;
+      });
+      const newCycle: CycleRecord = {
+        id: crypto.randomUUID(),
+        startDate,
+        endDate,
+        flowByDay,
+      };
+      setCycles((prev) => [...prev, newCycle]);
+    },
+    [setCycles]
+  );
+
   const logFlow = useCallback(
     (date: string, flow: FlowLevel) => {
       setCycles((prev) => {
-        // Find the cycle that contains this date
         const idx = prev.findIndex((c) => {
           const end = c.endDate ?? todayISO();
           return c.startDate <= date && date <= end;
@@ -86,6 +101,7 @@ export function useCycleData() {
     stats,
     startPeriod,
     endPeriod,
+    addPastCycle,
     logFlow,
     deleteCycle,
     saveDayLog,

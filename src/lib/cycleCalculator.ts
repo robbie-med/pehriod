@@ -1,6 +1,6 @@
 import { CycleRecord, CycleStats } from './types';
 
-function isoToDate(iso: string): Date {
+export function isoToDate(iso: string): Date {
   return new Date(iso + 'T00:00:00');
 }
 
@@ -14,6 +14,12 @@ export function todayISO(): string {
   return new Date().toISOString().split('T')[0];
 }
 
+export function addDays(iso: string, n: number): string {
+  const d = isoToDate(iso);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
 function sortedCycles(cycles: CycleRecord[]): CycleRecord[] {
   return [...cycles].sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
@@ -25,10 +31,8 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
   const completed = sorted.filter((c) => c.endDate);
   const ongoingCycle = sorted.find((c) => !c.endDate);
 
-  // Period lengths (days from start to end inclusive)
   const periodLengths = completed.map((c) => daysBetween(c.startDate, c.endDate!) + 1);
 
-  // Cycle lengths (start to start of next)
   const cycleLengths: number[] = [];
   for (let i = 0; i < sorted.length - 1; i++) {
     const len = daysBetween(sorted[i].startDate, sorted[i + 1].startDate);
@@ -41,20 +45,51 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
   const avgCycle = avg(cycleLengths);
   const avgPeriod = avg(periodLengths);
 
-  // Predict next start from the most recent cycle start
+  // Cycle length variation (standard deviation)
+  let cycleVariation: number | null = null;
+  if (cycleLengths.length >= 2 && avgCycle) {
+    const variance = cycleLengths.reduce((sum, l) => sum + Math.pow(l - avgCycle, 2), 0) / cycleLengths.length;
+    cycleVariation = Math.round(Math.sqrt(variance) * 10) / 10;
+  }
+
+  // Regularity classification
+  let regularity: CycleStats['regularity'] = 'unknown';
+  if (cycleVariation !== null) {
+    if (cycleVariation <= 2) regularity = 'very_regular';
+    else if (cycleVariation <= 4) regularity = 'regular';
+    else if (cycleVariation <= 7) regularity = 'somewhat_irregular';
+    else regularity = 'irregular';
+  }
+
+  // Next predicted start
   let nextPredicted: string | null = null;
   if (avgCycle && sorted.length > 0) {
     const lastStart = sorted[sorted.length - 1].startDate;
-    const d = isoToDate(lastStart);
-    d.setDate(d.getDate() + avgCycle);
-    nextPredicted = d.toISOString().split('T')[0];
-    // If prediction is in the past and there's an ongoing cycle, predict from now
+    nextPredicted = addDays(lastStart, avgCycle);
     if (nextPredicted <= today && ongoingCycle) {
-      const d2 = isoToDate(ongoingCycle.startDate);
-      d2.setDate(d2.getDate() + avgCycle);
-      nextPredicted = d2.toISOString().split('T')[0];
+      nextPredicted = addDays(ongoingCycle.startDate, avgCycle);
     }
   }
+
+  // Fertile window: ovulation ≈ 14 days before next period (luteal phase = 14 days)
+  // Fertile window = ovulation day ± 3 days (5-day window)
+  let fertileWindowStart: string | null = null;
+  let fertileWindowEnd: string | null = null;
+  let ovulationDay: string | null = null;
+
+  if (nextPredicted && avgCycle) {
+    // Ovulation day = next predicted period - 14 days
+    ovulationDay = addDays(nextPredicted, -14);
+    fertileWindowStart = addDays(ovulationDay, -3);
+    fertileWindowEnd = addDays(ovulationDay, 2);
+  }
+
+  // Is currently in fertile window?
+  const isFertileNow =
+    fertileWindowStart !== null &&
+    fertileWindowEnd !== null &&
+    today >= fertileWindowStart &&
+    today <= fertileWindowEnd;
 
   // Current cycle day (days since last cycle start)
   let currentCycleDay: number | null = null;
@@ -65,7 +100,6 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     }
   }
 
-  // On period?
   const isOnPeriod = !!ongoingCycle && ongoingCycle.startDate <= today;
   let currentPeriodDay: number | null = null;
   if (isOnPeriod && ongoingCycle) {
@@ -76,7 +110,13 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     totalCycles: sorted.length,
     averageCycleLength: avgCycle,
     averagePeriodLength: avgPeriod,
+    cycleVariation,
+    regularity,
     nextPredictedStart: nextPredicted,
+    fertileWindowStart,
+    fertileWindowEnd,
+    ovulationDay,
+    isFertileNow,
     currentCycleDay,
     isOnPeriod,
     currentPeriodDay,

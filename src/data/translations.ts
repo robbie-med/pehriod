@@ -92,6 +92,14 @@ const en = {
   cycle_confirm: 'Confirm',
   cycle_days_long: 'day period',
   cycle_length_days: 'day cycle',
+  cycle_regularity: 'Regularity',
+  cycle_total_logged: 'Cycles logged',
+  cycle_fertile_window: 'Fertile window',
+  cycle_fertile_now: 'NOW',
+  cycle_ovulation_est: 'Est. ovulation',
+  cycle_prediction_note: 'Predictions are estimates based on your history. Not medical advice.',
+  cycle_add_past: 'Add past cycle',
+  cycle_add_past_title: 'Log a past period',
 
   // Meds tab
   meds_title: 'Medications',
@@ -328,6 +336,14 @@ const ko: typeof en = {
   cycle_confirm: '확인',
   cycle_days_long: '일 생리',
   cycle_length_days: '일 주기',
+  cycle_regularity: '규칙성',
+  cycle_total_logged: '기록된 주기',
+  cycle_fertile_window: '가임 기간',
+  cycle_fertile_now: '지금',
+  cycle_ovulation_est: '예상 배란일',
+  cycle_prediction_note: '예측은 기록을 기반으로 한 추정치입니다. 의학적 조언이 아닙니다.',
+  cycle_add_past: '과거 주기 추가',
+  cycle_add_past_title: '과거 생리 기록하기',
 
   // Meds tab
   meds_title: '약 기록',

@@ -128,11 +128,19 @@ export interface DayLog {
   notes?: string;
 }
 
+export type CycleRegularity = 'very_regular' | 'regular' | 'somewhat_irregular' | 'irregular' | 'unknown';
+
 export interface CycleStats {
   totalCycles: number;
   averageCycleLength: number | null;
   averagePeriodLength: number | null;
-  nextPredictedStart: string | null;   // ISO date
+  cycleVariation: number | null;        // std dev of cycle lengths in days
+  regularity: CycleRegularity;
+  nextPredictedStart: string | null;    // ISO date
+  fertileWindowStart: string | null;   // ISO date
+  fertileWindowEnd: string | null;     // ISO date
+  ovulationDay: string | null;          // ISO date
+  isFertileNow: boolean;
   currentCycleDay: number | null;
   isOnPeriod: boolean;
   currentPeriodDay: number | null;

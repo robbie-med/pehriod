@@ -24,7 +24,7 @@ export default function Home() {
   const { intakeHistory, painLevel, setPainLevel, doseTotals, logIntake, deleteIntake, clearHistory } =
     useMedicationData();
 
-  const { cycles, stats, startPeriod, endPeriod, logFlow, deleteCycle, saveDayLog, getDayLog } =
+  const { cycles, stats, startPeriod, endPeriod, addPastCycle, logFlow, deleteCycle, saveDayLog, getDayLog } =
     useCycleData();
 
   const t = translations[lang];
@@ -78,6 +78,7 @@ export default function Home() {
             onEndPeriod={endPeriod}
             onLogFlow={logFlow}
             onDeleteCycle={deleteCycle}
+            onAddPastCycle={addPastCycle}
             lang={lang}
           />
         )}
