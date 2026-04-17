@@ -1,182 +1,109 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { languages, translations, Language } from '../data/translations';
-import { MedicationId, ActiveIngredient } from '../lib/types';
+import { useEffect } from 'react';
+import { Language } from '../data/translations';
+import { translations, languages } from '../data/translations';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMedicationData } from '../hooks/useMedicationData';
-import { useRecommendation } from '../hooks/useRecommendation';
+import { useCycleData } from '../hooks/useCycleData';
 import { STORAGE_KEYS } from '../lib/storage';
+import { clearAllStorage } from '../lib/storage';
 
-// UI Components
 import { Header } from '../components/ui/Header';
 import { BottomNav, TabType } from '../components/ui/BottomNav';
-
-// Tracker Components
-import { SymptomSlider } from '../components/tracker/SymptomSlider';
-import { DoseSummaryCard } from '../components/tracker/DoseSummaryCard';
-import { MedicationTimeline } from '../components/tracker/MedicationTimeline';
-
-// History Components
-import { IntakeHistory } from '../components/history/IntakeHistory';
-
-// Medication Info Components
-import { MedicationList } from '../components/medications/MedicationList';
-
-// Education Components
-import { EducationContent } from '../components/education/EducationContent';
-
-// Settings Components
-import { LanguageSelector } from '../components/settings/LanguageSelector';
+import { TodayDashboard } from '../components/today/TodayDashboard';
+import { CycleTracker } from '../components/cycle/CycleTracker';
+import { MedLogger } from '../components/meds/MedLogger';
+import { OTCGuide } from '../components/guide/OTCGuide';
+import { SettingsPanel } from '../components/settings/SettingsPanel';
 
 export default function Home() {
   const [lang, setLang] = useLocalStorage<Language>(STORAGE_KEYS.LANGUAGE, 'en');
-  const [activeTab, setActiveTab] = useState<TabType>('tracker');
+  const [activeTab, setActiveTab] = useLocalStorage<TabType>('pehriod_active_tab', 'today');
 
-  // Get medication data state
-  const {
-    intakeHistory,
-    painLevel,
-    setPainLevel,
-    doseTotals,
-    logIntake,
-    deleteIntake,
-  } = useMedicationData();
+  const { intakeHistory, painLevel, setPainLevel, doseTotals, logIntake, deleteIntake, clearHistory } =
+    useMedicationData();
 
-  // Get recommendation
-  const recommendation = useRecommendation(intakeHistory, doseTotals);
+  const { cycles, stats, startPeriod, endPeriod, logFlow, deleteCycle, saveDayLog, getDayLog } =
+    useCycleData();
 
   const t = translations[lang];
-  const dir = languages[lang].dir;
 
-  // Set document language and direction
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.documentElement.dir = dir;
-  }, [lang, dir]);
+    document.documentElement.dir = languages[lang].dir;
+  }, [lang]);
 
-  // Medication names for current language
-  const medicationNames: Record<MedicationId, string> = {
-    'pamprin-multi': t.med_pamprin_multi || 'Pamprin Multi-Symptom',
-    'pamprin-max-energy': t.med_pamprin_max || 'Pamprin Max Pain + Energy',
-    'midol-complete': t.med_midol_complete || 'Midol Complete',
-    ibuprofen: t.med_ibuprofen || 'Ibuprofen',
-    acetaminophen: t.med_acetaminophen || 'Acetaminophen',
+  const handleClearAll = () => {
+    clearAllStorage();
+    clearHistory();
+    // Reload to reset all hook state
+    window.location.reload();
   };
 
-  // Medication descriptions
-  const medicationDescriptions: Record<MedicationId, string> = {
-    'pamprin-multi':
-      t.med_pamprin_multi_desc ||
-      'Contains: Acetaminophen (Pain), Pamabrom (Diuretic), Pyrilamine Maleate (Antihistamine).',
-    'pamprin-max-energy':
-      t.med_pamprin_max_desc ||
-      'Contains: Acetaminophen, Aspirin, Caffeine for pain and energy.',
-    'midol-complete':
-      t.med_midol_complete_desc ||
-      'Contains: Acetaminophen, Caffeine, Pyrilamine Maleate.',
-    ibuprofen: t.med_ibuprofen_desc || 'Nonsteroidal anti-inflammatory drug (NSAID).',
-    acetaminophen: t.med_acetaminophen_desc || 'Pain reliever and fever reducer.',
+  const tabLabels: Record<TabType, string> = {
+    today: t.nav_today,
+    cycle: t.nav_cycle,
+    meds: t.nav_meds,
+    guide: t.nav_guide,
+    settings: t.nav_settings,
   };
 
-  // Ingredient labels
-  const ingredientLabels: Record<ActiveIngredient, string> = {
-    acetaminophen: t.ingredient_acetaminophen || 'Acetaminophen',
-    ibuprofen: t.ingredient_ibuprofen || 'Ibuprofen',
-    aspirin: t.ingredient_aspirin || 'Aspirin',
-    caffeine: t.ingredient_caffeine || 'Caffeine',
-    pamabrom: t.ingredient_pamabrom || 'Pamabrom',
-    pyrilamine: t.ingredient_pyrilamine || 'Pyrilamine',
-  };
+  const todayLog = getDayLog(new Date().toISOString().split('T')[0]);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <Header title={t.title} onSettingsClick={() => setActiveTab('settings')} />
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <Header title={t.app_title} />
 
-      <main className="max-w-3xl mx-auto p-4">
-        {activeTab === 'tracker' && (
-          <div className="space-y-6">
-            <SymptomSlider
-              painLevel={painLevel}
-              onPainLevelChange={setPainLevel}
-              label={t.pain_level}
-            />
-
-            <DoseSummaryCard
-              doseTotals={doseTotals}
-              title={t.total_24hr || '24-Hour Totals'}
-              ingredientLabels={ingredientLabels}
-            />
-
-            <MedicationTimeline
-              intakeHistory={intakeHistory}
-              doseTotals={doseTotals}
-              painLevel={painLevel}
-              onLogIntake={logIntake}
-              translations={{
-                schedule: t.schedule,
-                take: t.take,
-                taken: t.taken,
-                choose_one: t.choose_one || 'Choose one',
-                confirm_intake: t.confirm_intake || 'Confirm',
-                cancel: t.cancel || 'Cancel',
-                note: t.note,
-              }}
-              medicationNames={medicationNames}
-            />
-
-            <IntakeHistory
-              intakeHistory={intakeHistory}
-              onDelete={deleteIntake}
-              medicationNames={medicationNames}
-              translations={{
-                no_history: t.no_history || 'No medication history yet',
-                delete: t.delete || 'Delete',
-              }}
-            />
-          </div>
+      <main className="max-w-2xl mx-auto px-4 pt-4">
+        {activeTab === 'today' && (
+          <TodayDashboard
+            stats={stats}
+            intakeHistory={intakeHistory}
+            painLevel={painLevel}
+            onPainChange={setPainLevel}
+            dayLog={todayLog}
+            onSaveDayLog={saveDayLog}
+            onGoToMeds={() => setActiveTab('meds')}
+            onGoToCycle={() => setActiveTab('cycle')}
+            lang={lang}
+          />
         )}
 
-        {activeTab === 'education' && (
-          <EducationContent
-            title={t.education_title || 'Understanding Period Pain'}
-            content={
-              t.education_content ||
-              'Dysmenorrhea (painful periods) is caused by prostaglandins, chemicals that trigger muscle contractions in your uterus. Over-the-counter pain medications work by blocking prostaglandin production or reducing inflammation.'
-            }
+        {activeTab === 'cycle' && (
+          <CycleTracker
+            cycles={cycles}
+            stats={stats}
+            onStartPeriod={startPeriod}
+            onEndPeriod={endPeriod}
+            onLogFlow={logFlow}
+            onDeleteCycle={deleteCycle}
+            lang={lang}
           />
         )}
 
         {activeTab === 'meds' && (
-          <MedicationList
-            title={t.meds}
-            medicationNames={medicationNames}
-            medicationDescriptions={medicationDescriptions}
-            ingredientLabels={ingredientLabels}
+          <MedLogger
+            intakeHistory={intakeHistory}
+            doseTotals={doseTotals}
+            onLogIntake={logIntake}
+            onDeleteIntake={deleteIntake}
+            lang={lang}
           />
         )}
 
+        {activeTab === 'guide' && <OTCGuide lang={lang} />}
+
         {activeTab === 'settings' && (
-          <LanguageSelector
-            currentLanguage={lang}
-            onLanguageChange={(newLang) => {
-              setLang(newLang);
-              setActiveTab('tracker');
-            }}
-            title={t.settings}
+          <SettingsPanel
+            lang={lang}
+            onLanguageChange={setLang}
+            onClearAll={handleClearAll}
           />
         )}
       </main>
 
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        labels={{
-          tracker: t.tracker,
-          education: t.education,
-          meds: t.meds,
-        }}
-      />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} labels={tabLabels} />
     </div>
   );
 }

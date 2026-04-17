@@ -4,13 +4,19 @@ export const DOSE_LIMITS: DoseLimit[] = [
   {
     ingredient: 'acetaminophen',
     maxDailyMg: 3000,
-    warningThresholdMg: 2400,  // Warn at 80%
+    warningThresholdMg: 2400,
     isHardLimit: true,
   },
   {
     ingredient: 'ibuprofen',
     maxDailyMg: 1200,
-    warningThresholdMg: 960,
+    warningThresholdMg: 800,
+    isHardLimit: true,
+  },
+  {
+    ingredient: 'naproxen',
+    maxDailyMg: 660,
+    warningThresholdMg: 440,
     isHardLimit: true,
   },
   {
@@ -22,18 +28,17 @@ export const DOSE_LIMITS: DoseLimit[] = [
   {
     ingredient: 'caffeine',
     maxDailyMg: 400,
-    warningThresholdMg: 320,
-    isHardLimit: false,  // Warning only, not blocked
+    warningThresholdMg: 300,
+    isHardLimit: false,
   },
-  // Pamabrom and Pyrilamine have no hard limits in this use case
   {
     ingredient: 'pamabrom',
-    maxDailyMg: 200,  // 8 doses max theoretical
+    maxDailyMg: 200,
     isHardLimit: false,
   },
   {
     ingredient: 'pyrilamine',
-    maxDailyMg: 120,
+    maxDailyMg: 200,
     isHardLimit: false,
   },
 ];

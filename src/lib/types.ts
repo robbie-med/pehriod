@@ -1,5 +1,11 @@
 // ============================================
-// MEDICATION DEFINITIONS
+// LANGUAGE
+// ============================================
+
+export type Language = 'en' | 'ko';
+
+// ============================================
+// MEDICATIONS
 // ============================================
 
 export type MedicationId =
@@ -7,11 +13,13 @@ export type MedicationId =
   | 'pamprin-max-energy'
   | 'midol-complete'
   | 'ibuprofen'
+  | 'naproxen'
   | 'acetaminophen';
 
 export type ActiveIngredient =
   | 'acetaminophen'
   | 'ibuprofen'
+  | 'naproxen'
   | 'aspirin'
   | 'caffeine'
   | 'pamabrom'
@@ -24,58 +32,45 @@ export interface IngredientAmount {
 
 export interface Medication {
   id: MedicationId;
-  nameKey: string;                    // Translation key
-  composition: IngredientAmount[];     // What's in each dose
-  color: 'pink' | 'orange' | 'blue' | 'green';  // UI color coding
-  descriptionKey: string;              // Translation key for description
-  conflictsWith?: MedicationId[];      // Mutual exclusion (e.g., Pamprin Max <-> Midol)
+  nameKey: string;
+  composition: IngredientAmount[];
+  color: 'pink' | 'orange' | 'blue' | 'green' | 'purple';
+  descriptionKey: string;
+  conflictsWith?: MedicationId[];
+  minIntervalHours: number;
 }
 
 // ============================================
-// SCHEDULE
-// ============================================
-
-export interface ScheduledDose {
-  time: string;                        // "01:00", "05:00", etc (24hr format)
-  medications: MedicationId[];          // Allowed medications at this time
-  isChoice?: boolean;                  // True for 09:00 (choose Pamprin Max OR Midol)
-}
-
-// ============================================
-// INTAKE HISTORY
+// INTAKE / DOSE TRACKING
 // ============================================
 
 export interface IntakeRecord {
-  id: string;                          // UUID
+  id: string;
   medicationId: MedicationId;
-  timestamp: number;                   // Unix timestamp (ms)
-  scheduledTime?: string;              // "09:00" - which schedule slot (optional)
-  painLevel?: number;                  // 0-10 pain at time of intake
+  timestamp: number;
+  painLevel?: number;
 }
-
-// ============================================
-// DOSE TRACKING
-// ============================================
 
 export interface DoseTotals {
   acetaminophen: number;
   ibuprofen: number;
+  naproxen: number;
   aspirin: number;
   caffeine: number;
   pamabrom: number;
   pyrilamine: number;
-  lastUpdated: number;                 // Timestamp of calculation
+  lastUpdated: number;
 }
 
 export interface DoseLimit {
   ingredient: ActiveIngredient;
   maxDailyMg: number;
-  warningThresholdMg?: number;         // Optional warning at 80% of max
-  isHardLimit: boolean;                // true = block, false = warn only
+  warningThresholdMg?: number;
+  isHardLimit: boolean;
 }
 
 // ============================================
-// SAFETY & RECOMMENDATIONS
+// SAFETY
 // ============================================
 
 export type SafetyViolationType =
@@ -87,7 +82,7 @@ export type SafetyViolationType =
 export interface SafetyViolation {
   type: SafetyViolationType;
   severity: 'error' | 'warning';
-  messageKey: string;                  // Translation key
+  messageKey: string;
   details?: {
     ingredient?: ActiveIngredient;
     currentMg?: number;
@@ -97,20 +92,48 @@ export interface SafetyViolation {
   };
 }
 
-export interface Recommendation {
-  scheduledTime: string;               // "09:00"
-  recommendedMedications: MedicationId[];
-  availableAt: number;                 // Unix timestamp when safe to take
-  isSafeNow: boolean;
-  violations: SafetyViolation[];       // Warnings/errors if user tries to take now
+// ============================================
+// CYCLE TRACKING
+// ============================================
+
+export type FlowLevel = 'spotting' | 'light' | 'medium' | 'heavy';
+
+export type SymptomType =
+  | 'cramps'
+  | 'bloating'
+  | 'headache'
+  | 'backache'
+  | 'breast_tenderness'
+  | 'fatigue'
+  | 'nausea'
+  | 'mood_changes'
+  | 'acne';
+
+export type MoodType = 'great' | 'good' | 'neutral' | 'low' | 'irritable' | 'anxious';
+
+export interface CycleRecord {
+  id: string;
+  startDate: string;   // ISO date "2024-01-15"
+  endDate?: string;    // ISO date, undefined = ongoing
+  flowByDay: Record<string, FlowLevel>;
+  notes?: string;
 }
 
-// ============================================
-// APP STATE
-// ============================================
+export interface DayLog {
+  id: string;
+  date: string;          // ISO date
+  painLevel?: number;    // 0-10
+  symptoms: SymptomType[];
+  mood?: MoodType;
+  notes?: string;
+}
 
-export interface AppState {
-  intakeHistory: IntakeRecord[];
-  currentPainLevel: number;            // 0-10
-  preferredLanguage: string;           // Language code
+export interface CycleStats {
+  totalCycles: number;
+  averageCycleLength: number | null;
+  averagePeriodLength: number | null;
+  nextPredictedStart: string | null;   // ISO date
+  currentCycleDay: number | null;
+  isOnPeriod: boolean;
+  currentPeriodDay: number | null;
 }
