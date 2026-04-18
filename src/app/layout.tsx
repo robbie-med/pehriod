@@ -40,8 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               if(t==='dark'){h.classList.add('dark');}
               else if(t==='light'){h.classList.add('light');}
               else if(window.matchMedia('(prefers-color-scheme:dark)').matches){h.classList.add('dark');}
-              var c=localStorage.getItem('pehriod_theme_color');
-              if(c&&c!=='pink'){h.setAttribute('data-theme',c);}
+              var hue=localStorage.getItem('pehriod_accent_hue');
+              if(hue){h.style.setProperty('--ah',hue);}
+              else{var lc=localStorage.getItem('pehriod_theme_color');var lm={pink:330,rose:350,purple:280,blue:220,teal:175,orange:25};if(lc&&lm[lc]){h.style.setProperty('--ah',lm[lc]);}}
             }catch(e){}})();`,
           }}
         />

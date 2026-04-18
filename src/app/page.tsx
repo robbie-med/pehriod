@@ -12,6 +12,7 @@ import { clearAllStorage } from '../lib/storage';
 import { Header } from '../components/ui/Header';
 import { BottomNav, TabType } from '../components/ui/BottomNav';
 import { BackupReminder } from '../components/ui/BackupReminder';
+import { SplashScreen } from '../components/ui/SplashScreen';
 import { TodayDashboard } from '../components/today/TodayDashboard';
 import { CycleTracker } from '../components/cycle/CycleTracker';
 import { MedLogger } from '../components/meds/MedLogger';
@@ -20,6 +21,7 @@ import { SettingsPanel } from '../components/settings/SettingsPanel';
 
 export default function Home() {
   const [lang, setLang] = useLocalStorage<Language>(STORAGE_KEYS.LANGUAGE, 'en');
+  const [splashDone, setSplashDone] = useLocalStorage<boolean>('pehriod_splash_done', false);
   const [activeTab, setActiveTab] = useLocalStorage<TabType>('pehriod_active_tab', 'today');
 
   const { intakeHistory, painLevel, setPainLevel, doseTotals, logIntake, deleteIntake, clearHistory } =
@@ -53,6 +55,15 @@ export default function Home() {
   };
 
   const todayLog = getDayLog(new Date().toISOString().split('T')[0]);
+
+  const handleSplashComplete = (selectedLang: Language) => {
+    setLang(selectedLang);
+    setSplashDone(true);
+  };
+
+  if (!splashDone) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">

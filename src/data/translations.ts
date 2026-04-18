@@ -318,6 +318,24 @@ const en = {
   appt_symptoms: 'COMMON SYMPTOMS',
   appt_meds: 'MEDICATIONS USED',
   appt_no_data: 'Not enough data to generate summary. Log at least 2 cycles.',
+
+  splash_lang_title: 'Choose your language',
+  splash_lang_subtitle: 'You can change this anytime in Settings',
+  splash_lang_continue: 'Continue',
+  splash_privacy_title: 'Your data stays on your phone',
+  splash_privacy_body: 'Pehriod works 100% offline. Nothing is ever sent to a server. Your cycle, medications, and logs are stored only on this device.',
+  splash_backup_title: 'Back up regularly',
+  splash_backup_body: 'Use Settings → Export to save a backup file. If you switch phones or clear your browser, your data is gone without a backup.',
+  splash_start: 'Get started',
+
+  about_title: 'About & Feedback',
+  about_subtitle: 'Period pain management, private & offline',
+  about_translations_note: 'Translations are AI-generated and may not be perfect.',
+  about_meds_note: 'Medications shown are OTC products available in the USA. Availability varies by country.',
+  about_feedback_label: 'Feedback & questions',
+  about_feedback_email: 'pehriod@robbiemed.org',
+  about_privacy_note: 'No data is ever collected or transmitted. Everything stays on your device.',
+  about_version: 'Version 2.1',
 };
 
 const ko: typeof en = {
@@ -631,6 +649,24 @@ const ko: typeof en = {
   appt_symptoms: '주요 증상',
   appt_meds: '사용 약물',
   appt_no_data: '요약을 생성하려면 최소 2개의 주기를 기록하세요.',
+
+  splash_lang_title: '언어를 선택하세요',
+  splash_lang_subtitle: '설정에서 언제든지 변경할 수 있습니다',
+  splash_lang_continue: '계속',
+  splash_privacy_title: '데이터는 내 폰에만 있어요',
+  splash_privacy_body: 'Pehriod는 완전 오프라인으로 작동합니다. 서버에 아무것도 전송되지 않습니다. 주기, 약물, 기록은 이 기기에만 저장됩니다.',
+  splash_backup_title: '정기적으로 백업하세요',
+  splash_backup_body: '설정 → 내보내기로 백업 파일을 저장하세요. 폰을 바꾸거나 브라우저를 초기화하면 백업 없이는 데이터가 사라집니다.',
+  splash_start: '시작하기',
+
+  about_title: '앱 정보 및 피드백',
+  about_subtitle: '생리통 관리 — 개인 정보 보호, 오프라인',
+  about_translations_note: '번역은 AI가 생성했으며 정확하지 않을 수 있습니다.',
+  about_meds_note: '표시된 약물은 미국에서 구매 가능한 제품입니다. 국가마다 다를 수 있습니다.',
+  about_feedback_label: '피드백 및 문의',
+  about_feedback_email: 'pehriod@robbiemed.org',
+  about_privacy_note: '데이터는 수집되거나 전송되지 않습니다. 모든 것은 기기에 남아 있습니다.',
+  about_version: '버전 2.1',
 };
 
 const my: typeof en = {
@@ -944,6 +980,24 @@ const my: typeof en = {
   appt_symptoms: 'ဖြစ်ပွားနှုန်းများသော လက္ခဏာများ',
   appt_meds: 'သုံးသည့် ဆေးများ',
   appt_no_data: 'အကျဉ်းချုပ် ထုတ်ရန် သန်းစက် ၂ ကြိမ်ပြည့် မှတ်ပါ',
+
+  splash_lang_title: 'ဘာသာစကား ရွေးချယ်ပါ',
+  splash_lang_subtitle: 'ဆက်တင်တွင် ကြိုက်သည့်အချိန် ပြောင်းနိုင်သည်',
+  splash_lang_continue: 'ဆက်သွားမည်',
+  splash_privacy_title: 'သင့်ဒေတာ ဖုန်းတွင်သာ ရှိသည်',
+  splash_privacy_body: 'Pehriod သည် အင်တာနက်မလို အလုပ်လုပ်သည်။ ဆာဗာသို့ ဘာမှ မပေးပို့ပါ။ သင့်သန်းစက်၊ ဆေး၊ မှတ်တမ်းများ ဤစက်တွင်သာ သိမ်းဆည်းသည်။',
+  splash_backup_title: 'မကြာမကြာ အရန်သိမ်းပါ',
+  splash_backup_body: 'ဆက်တင် → ပို့မည် ဖြင့် အရန်ဖိုင် သိမ်းပါ။ ဖုန်းပြောင်းသည် သို့မဟုတ် ဘရောက်ဆာ ရှင်းသည်က အရန်မသိမ်းဘဲ ဒေတာ ဆုံးနိုင်သည်။',
+  splash_start: 'စတင်မည်',
+
+  about_title: 'အကြောင်း နှင့် တုံ့ပြန်ချက်',
+  about_subtitle: 'ဓမ္မတာ နာကျင်မှု စီမံမှု — ကိုယ်ရေးကိုယ်တာ၊ အင်တာနက်မလို',
+  about_translations_note: 'ဘာသာပြန်ချက်များသည် AI မှ ဖန်တီးထားသဖြင့် မပြည့်ကျမှုများ ရှိနိုင်သည်။',
+  about_meds_note: 'ပြထားသော ဆေးများသည် အမေရိကန်တွင် ရနိုင်သော ထုတ်ကုန်များဖြစ်သည်။ နိုင်ငံအလိုက် ကွဲပြားနိုင်သည်။',
+  about_feedback_label: 'တုံ့ပြန်ချက် နှင့် မေးမြန်းချက်',
+  about_feedback_email: 'pehriod@robbiemed.org',
+  about_privacy_note: 'ဒေတာ မကောက်ယူ မပေးပို့ပါ။ အရာအားလုံး စက်တွင်သာ ရှိသည်။',
+  about_version: 'ဗားရှင်း ၂.၁',
 };
 
 const ar: typeof en = {
@@ -1257,6 +1311,24 @@ const ar: typeof en = {
   appt_symptoms: 'الأعراض الشائعة',
   appt_meds: 'الأدوية المستخدمة',
   appt_no_data: 'قومي بتسجيل دورتين على الأقل لإنشاء الملخص.',
+
+  splash_lang_title: 'اختاري لغتك',
+  splash_lang_subtitle: 'يمكنك التغيير في أي وقت من الإعدادات',
+  splash_lang_continue: 'متابعة',
+  splash_privacy_title: 'بياناتك تبقى على هاتفك',
+  splash_privacy_body: 'يعمل Pehriod بدون إنترنت بالكامل. لا يُرسل أي شيء إلى خادم. دوراتك وأدويتك وسجلاتك مخزنة على هذا الجهاز فقط.',
+  splash_backup_title: 'احتفظي بنسخة احتياطية دورياً',
+  splash_backup_body: 'استخدمي الإعدادات ← تصدير لحفظ ملف احتياطي. إذا غيّرتِ هاتفك أو مسحتِ المتصفح، ستفقدين بياناتك بدون نسخة احتياطية.',
+  splash_start: 'ابدأي الآن',
+
+  about_title: 'حول التطبيق والملاحظات',
+  about_subtitle: 'إدارة آلام الحيض — خاص وبلا إنترنت',
+  about_translations_note: 'الترجمات تلقائية بالذكاء الاصطناعي وقد لا تكون مثالية.',
+  about_meds_note: 'الأدوية المعروضة متاحة في الولايات المتحدة. قد تختلف باختلاف البلد.',
+  about_feedback_label: 'ملاحظات واستفسارات',
+  about_feedback_email: 'pehriod@robbiemed.org',
+  about_privacy_note: 'لا يتم جمع أي بيانات أو إرسالها. كل شيء يبقى على جهازك.',
+  about_version: 'الإصدار ٢.١',
 };
 
 export const translations: Record<Language, typeof en> = { en, ko, my, ar };

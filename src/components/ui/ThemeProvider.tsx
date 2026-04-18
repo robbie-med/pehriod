@@ -3,19 +3,22 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
-export type ThemeColor = 'pink' | 'purple' | 'blue' | 'teal' | 'rose' | 'orange';
+
+const LEGACY_HUE: Record<string, number> = {
+  pink: 330, rose: 350, purple: 280, blue: 220, teal: 175, orange: 25,
+};
 
 interface ThemeCtx {
   mode: ThemeMode;
   setMode: (m: ThemeMode) => void;
   isDark: boolean;
-  color: ThemeColor;
-  setColor: (c: ThemeColor) => void;
+  accentHue: number;
+  setAccentHue: (h: number) => void;
 }
 
 const Ctx = createContext<ThemeCtx>({
   mode: 'auto', setMode: () => {}, isDark: false,
-  color: 'pink', setColor: () => {},
+  accentHue: 330, setAccentHue: () => {},
 });
 
 function applyDark(isDark: boolean) {
@@ -24,16 +27,33 @@ function applyDark(isDark: boolean) {
   else { h.classList.remove('dark', 'light'); }
 }
 
+function applyHue(hue: number) {
+  document.documentElement.style.setProperty('--ah', String(hue));
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>('auto');
   const [isDark, setIsDark] = useState(false);
-  const [color, setColorState] = useState<ThemeColor>('pink');
+  const [accentHue, setAccentHueState] = useState<number>(330);
 
   useEffect(() => {
     const storedMode = localStorage.getItem('pehriod_theme') as ThemeMode | null;
-    const storedColor = localStorage.getItem('pehriod_theme_color') as ThemeColor | null;
     if (storedMode) setModeState(storedMode);
-    if (storedColor) setColorState(storedColor);
+
+    const storedHue = localStorage.getItem('pehriod_accent_hue');
+    if (storedHue !== null) {
+      const h = Number(storedHue);
+      setAccentHueState(h);
+      applyHue(h);
+    } else {
+      // Migrate from old ThemeColor
+      const legacyColor = localStorage.getItem('pehriod_theme_color');
+      if (legacyColor && LEGACY_HUE[legacyColor] !== undefined) {
+        const h = LEGACY_HUE[legacyColor];
+        setAccentHueState(h);
+        applyHue(h);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -45,16 +65,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       h.classList.remove('dark'); h.classList.add('light');
       setIsDark(false);
     } else {
-      // auto — apply dark class based on system preference (CSS overrides rely on .dark class)
       const sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
       applyDark(sys);
       setIsDark(sys);
-
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = (e: MediaQueryListEvent) => {
-        applyDark(e.matches);
-        setIsDark(e.matches);
-      };
+      const handler = (e: MediaQueryListEvent) => { applyDark(e.matches); setIsDark(e.matches); };
       mq.addEventListener('change', handler);
       return () => mq.removeEventListener('change', handler);
     }
@@ -65,15 +80,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('pehriod_theme', m);
   };
 
-  const setColor = (c: ThemeColor) => {
-    setColorState(c);
-    localStorage.setItem('pehriod_theme_color', c);
-    const h = document.documentElement;
-    if (c === 'pink') h.removeAttribute('data-theme');
-    else h.setAttribute('data-theme', c);
+  const setAccentHue = (h: number) => {
+    setAccentHueState(h);
+    localStorage.setItem('pehriod_accent_hue', String(h));
+    applyHue(h);
   };
 
-  return <Ctx.Provider value={{ mode, setMode, isDark, color, setColor }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ mode, setMode, isDark, accentHue, setAccentHue }}>{children}</Ctx.Provider>;
 }
 
 export function useTheme() { return useContext(Ctx); }

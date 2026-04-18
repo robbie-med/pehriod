@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Language, languages } from '../../data/translations';
 import { translations } from '../../data/translations';
 import { exportAllData, clearAllStorage, importAllData } from '../../lib/storage';
-import { useTheme, ThemeMode, ThemeColor } from '../ui/ThemeProvider';
+import { useTheme, ThemeMode } from '../ui/ThemeProvider';
 import { CycleRecord, CycleStats, IntakeRecord, DayLog, SymptomType } from '../../lib/types';
 import { MEDICATIONS } from '../../lib/medications';
 
@@ -121,22 +121,13 @@ function buildAppointmentSummary(
 
 export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stats, intakeHistory, dayLogs }: Props) {
   const t = translations[lang];
-  const { mode, setMode, color, setColor } = useTheme();
+  const { mode, setMode, accentHue, setAccentHue } = useTheme();
   const [clearConfirm, setClearConfirm] = useState(false);
   const [exported, setExported] = useState(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [importError, setImportError] = useState('');
   const [apptCopied, setApptCopied] = useState(false);
   const [showAppt, setShowAppt] = useState(false);
-
-  const COLORS: { value: ThemeColor; hex: string }[] = [
-    { value: 'pink',   hex: '#ec4899' },
-    { value: 'purple', hex: '#a855f7' },
-    { value: 'blue',   hex: '#3b82f6' },
-    { value: 'teal',   hex: '#14b8a6' },
-    { value: 'rose',   hex: '#f43f5e' },
-    { value: 'orange', hex: '#f97316' },
-  ];
 
   const THEMES: { value: ThemeMode; label: string }[] = [
     { value: 'auto', label: t.settings_theme_auto },
@@ -233,22 +224,23 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
         </div>
       </div>
 
-      {/* Accent color */}
+      {/* Accent color — spectrum picker */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h2 className="font-semibold text-gray-800 mb-3">{t.settings_color}</h2>
-        <div className="flex gap-2 flex-wrap">
-          {COLORS.map(({ value, hex }) => (
-            <button
-              key={value}
-              onClick={() => setColor(value)}
-              title={t[`color_${value}` as keyof typeof t] as string}
-              className={`w-9 h-9 rounded-full border-2 transition-all ${
-                color === value ? 'border-gray-700 scale-110' : 'border-transparent'
-              }`}
-              style={{ backgroundColor: hex }}
-            />
-          ))}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-gray-800">{t.settings_color}</h2>
+          <div
+            className="w-7 h-7 rounded-full border-2 border-white shadow"
+            style={{ backgroundColor: `hsl(${accentHue}, 78%, 57%)` }}
+          />
         </div>
+        <input
+          type="range"
+          min={0}
+          max={359}
+          value={accentHue}
+          onChange={(e) => setAccentHue(Number(e.target.value))}
+          className="spectrum-slider"
+        />
       </div>
 
       {/* Appointment Summary */}
@@ -314,11 +306,34 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
         </div>
       </div>
 
-      {/* About */}
+      {/* About & Feedback */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h2 className="font-semibold text-gray-800 mb-1">{t.settings_about}</h2>
-        <p className="text-xs text-gray-500 mb-1">{t.settings_about_text}</p>
-        <p className="text-xs text-gray-400">{t.settings_version}</p>
+        <h2 className="font-semibold text-gray-800 mb-0.5">{t.about_title}</h2>
+        <p className="text-xs text-gray-500 mb-3">{t.about_subtitle}</p>
+
+        <div className="space-y-2.5">
+          <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+            <p className="text-xs text-blue-700">🌐 {t.about_translations_note}</p>
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+            <p className="text-xs text-amber-700">🇺🇸 {t.about_meds_note}</p>
+          </div>
+          <div className="bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+            <p className="text-xs text-green-700">🔒 {t.about_privacy_note}</p>
+          </div>
+
+          <div className="pt-1">
+            <p className="text-xs text-gray-500 mb-1">{t.about_feedback_label}</p>
+            <a
+              href={`mailto:${t.about_feedback_email}`}
+              className="text-sm text-pink-600 font-medium underline"
+            >
+              {t.about_feedback_email}
+            </a>
+          </div>
+
+          <p className="text-xs text-gray-400 pt-1">{t.about_version}</p>
+        </div>
       </div>
 
       {/* Clear confirm modal */}

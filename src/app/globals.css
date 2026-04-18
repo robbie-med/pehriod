@@ -13,6 +13,7 @@
   --txt3: #9ca3af;
   --bdr:  #f3f4f6;
   --bdr2: #e5e7eb;
+  --ah:   330;  /* accent hue 0-359; overridden by ThemeProvider */
 }
 
 .dark {
@@ -156,119 +157,69 @@ body {
 .dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 
 /* ═══════════════════════════════════════════════════════════
-   THEME COLOR OVERRIDES
-   data-theme attribute on <html> swaps the pink accent.
+   ACCENT COLOR SYSTEM
+   All pink Tailwind classes use CSS variable --ah (hue 0-359).
+   ThemeProvider sets --ah on <html> via JS; defaults to 330 (pink).
+   Unlayered CSS beats Tailwind v4 @layer utilities.
 ═══════════════════════════════════════════════════════════ */
+.bg-pink-500, .bg-pink-400 { background-color: hsl(var(--ah), 78%, 57%); }
+.bg-pink-300 { background-color: hsl(var(--ah), 75%, 73%); }
+.bg-pink-100 { background-color: hsl(var(--ah), 68%, 93%); }
+.bg-pink-50  { background-color: hsl(var(--ah), 62%, 97%); }
 
-/* ─── Purple ─── */
-[data-theme="purple"] .bg-pink-500, [data-theme="purple"] .bg-pink-400 { background-color: #a855f7; }
-[data-theme="purple"] .bg-pink-300 { background-color: #c084fc; }
-[data-theme="purple"] .bg-pink-100 { background-color: #f3e8ff; }
-[data-theme="purple"] .bg-pink-50  { background-color: #faf5ff; }
-[data-theme="purple"] .text-pink-900 { color: #581c87; }
-[data-theme="purple"] .text-pink-800 { color: #6b21a8; }
-[data-theme="purple"] .text-pink-700 { color: #7e22ce; }
-[data-theme="purple"] .text-pink-600 { color: #9333ea; }
-[data-theme="purple"] .text-pink-500 { color: #a855f7; }
-[data-theme="purple"] .text-pink-400 { color: #c084fc; }
-[data-theme="purple"] .border-pink-500 { border-color: #a855f7; }
-[data-theme="purple"] .border-pink-400 { border-color: #c084fc; }
-[data-theme="purple"] .border-pink-300 { border-color: #d8b4fe; }
-[data-theme="purple"] .border-pink-200 { border-color: #e9d5ff; }
-[data-theme="purple"] .border-pink-100 { border-color: #f3e8ff; }
-[data-theme="purple"] .ring-pink-500   { --tw-ring-color: #a855f7; }
-[data-theme="purple"] .ring-pink-300   { --tw-ring-color: #d8b4fe; }
-[data-theme="purple"] .accent-pink-500 { accent-color: #a855f7; }
-[data-theme="purple"] .border-l-2.border-pink-300 { border-color: #d8b4fe; }
+.text-pink-900 { color: hsl(var(--ah), 80%, 22%); }
+.text-pink-800 { color: hsl(var(--ah), 80%, 28%); }
+.text-pink-700 { color: hsl(var(--ah), 78%, 40%); }
+.text-pink-600 { color: hsl(var(--ah), 78%, 48%); }
+.text-pink-500 { color: hsl(var(--ah), 78%, 57%); }
+.text-pink-400 { color: hsl(var(--ah), 75%, 66%); }
 
-/* ─── Blue ─── */
-[data-theme="blue"] .bg-pink-500, [data-theme="blue"] .bg-pink-400 { background-color: #3b82f6; }
-[data-theme="blue"] .bg-pink-300 { background-color: #60a5fa; }
-[data-theme="blue"] .bg-pink-100 { background-color: #dbeafe; }
-[data-theme="blue"] .bg-pink-50  { background-color: #eff6ff; }
-[data-theme="blue"] .text-pink-900 { color: #1e3a8a; }
-[data-theme="blue"] .text-pink-800 { color: #1e40af; }
-[data-theme="blue"] .text-pink-700 { color: #1d4ed8; }
-[data-theme="blue"] .text-pink-600 { color: #2563eb; }
-[data-theme="blue"] .text-pink-500 { color: #3b82f6; }
-[data-theme="blue"] .text-pink-400 { color: #60a5fa; }
-[data-theme="blue"] .border-pink-500 { border-color: #3b82f6; }
-[data-theme="blue"] .border-pink-400 { border-color: #60a5fa; }
-[data-theme="blue"] .border-pink-300 { border-color: #93c5fd; }
-[data-theme="blue"] .border-pink-200 { border-color: #bfdbfe; }
-[data-theme="blue"] .border-pink-100 { border-color: #dbeafe; }
-[data-theme="blue"] .ring-pink-500   { --tw-ring-color: #3b82f6; }
-[data-theme="blue"] .ring-pink-300   { --tw-ring-color: #93c5fd; }
-[data-theme="blue"] .accent-pink-500 { accent-color: #3b82f6; }
-[data-theme="blue"] .border-l-2.border-pink-300 { border-color: #93c5fd; }
+.border-pink-500 { border-color: hsl(var(--ah), 78%, 57%); }
+.border-pink-400 { border-color: hsl(var(--ah), 75%, 66%); }
+.border-pink-300 { border-color: hsl(var(--ah), 72%, 76%); }
+.border-pink-200 { border-color: hsl(var(--ah), 68%, 87%); }
+.border-pink-100 { border-color: hsl(var(--ah), 65%, 93%); }
 
-/* ─── Teal ─── */
-[data-theme="teal"] .bg-pink-500, [data-theme="teal"] .bg-pink-400 { background-color: #14b8a6; }
-[data-theme="teal"] .bg-pink-300 { background-color: #2dd4bf; }
-[data-theme="teal"] .bg-pink-100 { background-color: #ccfbf1; }
-[data-theme="teal"] .bg-pink-50  { background-color: #f0fdfa; }
-[data-theme="teal"] .text-pink-900 { color: #134e4a; }
-[data-theme="teal"] .text-pink-800 { color: #115e59; }
-[data-theme="teal"] .text-pink-700 { color: #0f766e; }
-[data-theme="teal"] .text-pink-600 { color: #0d9488; }
-[data-theme="teal"] .text-pink-500 { color: #14b8a6; }
-[data-theme="teal"] .text-pink-400 { color: #2dd4bf; }
-[data-theme="teal"] .border-pink-500 { border-color: #14b8a6; }
-[data-theme="teal"] .border-pink-400 { border-color: #2dd4bf; }
-[data-theme="teal"] .border-pink-300 { border-color: #5eead4; }
-[data-theme="teal"] .border-pink-200 { border-color: #99f6e4; }
-[data-theme="teal"] .border-pink-100 { border-color: #ccfbf1; }
-[data-theme="teal"] .ring-pink-500   { --tw-ring-color: #14b8a6; }
-[data-theme="teal"] .ring-pink-300   { --tw-ring-color: #5eead4; }
-[data-theme="teal"] .accent-pink-500 { accent-color: #14b8a6; }
-[data-theme="teal"] .border-l-2.border-pink-300 { border-color: #5eead4; }
+.ring-pink-500   { --tw-ring-color: hsl(var(--ah), 78%, 57%); }
+.ring-pink-300   { --tw-ring-color: hsl(var(--ah), 72%, 76%); }
+.accent-pink-500 { accent-color:    hsl(var(--ah), 78%, 57%); }
 
-/* ─── Rose ─── */
-[data-theme="rose"] .bg-pink-500, [data-theme="rose"] .bg-pink-400 { background-color: #f43f5e; }
-[data-theme="rose"] .bg-pink-300 { background-color: #fb7185; }
-[data-theme="rose"] .bg-pink-100 { background-color: #ffe4e6; }
-[data-theme="rose"] .bg-pink-50  { background-color: #fff1f2; }
-[data-theme="rose"] .text-pink-900 { color: #881337; }
-[data-theme="rose"] .text-pink-800 { color: #9f1239; }
-[data-theme="rose"] .text-pink-700 { color: #be123c; }
-[data-theme="rose"] .text-pink-600 { color: #e11d48; }
-[data-theme="rose"] .text-pink-500 { color: #f43f5e; }
-[data-theme="rose"] .text-pink-400 { color: #fb7185; }
-[data-theme="rose"] .border-pink-500 { border-color: #f43f5e; }
-[data-theme="rose"] .border-pink-400 { border-color: #fb7185; }
-[data-theme="rose"] .border-pink-300 { border-color: #fda4af; }
-[data-theme="rose"] .border-pink-200 { border-color: #fecdd3; }
-[data-theme="rose"] .border-pink-100 { border-color: #ffe4e6; }
-[data-theme="rose"] .ring-pink-500   { --tw-ring-color: #f43f5e; }
-[data-theme="rose"] .ring-pink-300   { --tw-ring-color: #fda4af; }
-[data-theme="rose"] .accent-pink-500 { accent-color: #f43f5e; }
-[data-theme="rose"] .border-l-2.border-pink-300 { border-color: #fda4af; }
+/* Dark mode accent tints */
+.dark .bg-pink-50  { background-color: hsl(var(--ah), 38%, 9%); }
+.dark .bg-pink-100 { background-color: hsl(var(--ah), 42%, 13%); }
 
-/* ─── Orange ─── */
-[data-theme="orange"] .bg-pink-500, [data-theme="orange"] .bg-pink-400 { background-color: #f97316; }
-[data-theme="orange"] .bg-pink-300 { background-color: #fb923c; }
-[data-theme="orange"] .bg-pink-100 { background-color: #ffedd5; }
-[data-theme="orange"] .bg-pink-50  { background-color: #fff7ed; }
-[data-theme="orange"] .text-pink-900 { color: #7c2d12; }
-[data-theme="orange"] .text-pink-800 { color: #9a3412; }
-[data-theme="orange"] .text-pink-700 { color: #c2410c; }
-[data-theme="orange"] .text-pink-600 { color: #ea580c; }
-[data-theme="orange"] .text-pink-500 { color: #f97316; }
-[data-theme="orange"] .text-pink-400 { color: #fb923c; }
-[data-theme="orange"] .border-pink-500 { border-color: #f97316; }
-[data-theme="orange"] .border-pink-400 { border-color: #fb923c; }
-[data-theme="orange"] .border-pink-300 { border-color: #fdba74; }
-[data-theme="orange"] .border-pink-200 { border-color: #fed7aa; }
-[data-theme="orange"] .border-pink-100 { border-color: #ffedd5; }
-[data-theme="orange"] .ring-pink-500   { --tw-ring-color: #f97316; }
-[data-theme="orange"] .ring-pink-300   { --tw-ring-color: #fdba74; }
-[data-theme="orange"] .accent-pink-500 { accent-color: #f97316; }
-[data-theme="orange"] .border-l-2.border-pink-300 { border-color: #fdba74; }
-
-/* Also override dark + theme combinations for colored card backgrounds */
-.dark[data-theme="purple"] .bg-pink-50,
-.dark [data-theme="purple"] .bg-pink-50 { background-color: #1e1035; }
-.dark[data-theme="blue"] .bg-pink-50,
-.dark [data-theme="blue"] .bg-pink-50   { background-color: #0f1829; }
-.dark[data-theme="teal"] .bg-pink-50,
-.dark [data-theme="teal"] .bg-pink-50   { background-color: #0a1f1c; }
+/* Spectrum color picker slider */
+.spectrum-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  border-radius: 14px;
+  background: linear-gradient(to right,
+    hsl(0,78%,57%), hsl(30,78%,57%), hsl(60,78%,57%), hsl(90,78%,57%),
+    hsl(120,78%,57%), hsl(150,78%,57%), hsl(180,78%,57%), hsl(210,78%,57%),
+    hsl(240,78%,57%), hsl(270,78%,57%), hsl(300,78%,57%), hsl(330,78%,57%), hsl(359,78%,57%));
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.spectrum-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: hsl(var(--ah), 78%, 57%);
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  cursor: pointer;
+}
+.spectrum-slider::-moz-range-thumb {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: hsl(var(--ah), 78%, 57%);
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  cursor: pointer;
+}
