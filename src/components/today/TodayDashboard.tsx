@@ -47,6 +47,14 @@ export function TodayDashboard({
     return d === today;
   });
 
+  const showPreemptAlert = (() => {
+    if (stats.isOnPeriod || !stats.nextPredictedStart) return false;
+    const days = daysUntil(stats.nextPredictedStart);
+    if (days < 0 || days > 2) return false;
+    const todayNsaid = todayIntakes.some((i) => i.medicationId === 'ibuprofen' || i.medicationId === 'naproxen');
+    return !todayNsaid;
+  })();
+
   const cycleStatus = () => {
     if (stats.totalCycles === 0) {
       return (
@@ -127,6 +135,20 @@ export function TodayDashboard({
           </div>
         </div>
       </div>
+
+      {/* Pre-emptive dosing alert */}
+      {showPreemptAlert && (
+        <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-4">
+          <p className="font-semibold text-yellow-800 text-sm mb-1">⚡ {t.preempt_title}</p>
+          <p className="text-xs text-yellow-700 leading-relaxed mb-3">{t.preempt_body}</p>
+          <button
+            onClick={onGoToMeds}
+            className="text-xs font-medium text-yellow-900 bg-yellow-200 px-3 py-1.5 rounded-lg"
+          >
+            {t.preempt_cta} →
+          </button>
+        </div>
+      )}
 
       {/* Pain + symptom log */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">

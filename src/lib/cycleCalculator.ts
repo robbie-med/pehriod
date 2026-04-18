@@ -36,7 +36,7 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
   const cycleLengths: number[] = [];
   for (let i = 0; i < sorted.length - 1; i++) {
     const len = daysBetween(sorted[i].startDate, sorted[i + 1].startDate);
-    if (len > 0 && len < 90) cycleLengths.push(len);
+    if (len > 0 && len < 180) cycleLengths.push(len);
   }
 
   const avg = (arr: number[]) =>
@@ -79,9 +79,10 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
 
   if (nextPredicted && avgCycle) {
     // Ovulation day = next predicted period - 14 days
+    // Fertile window: sperm viable 5 days before ovulation, egg viable ~24h after
     ovulationDay = addDays(nextPredicted, -14);
-    fertileWindowStart = addDays(ovulationDay, -3);
-    fertileWindowEnd = addDays(ovulationDay, 2);
+    fertileWindowStart = addDays(ovulationDay, -5);
+    fertileWindowEnd = addDays(ovulationDay, 1);
   }
 
   // Is currently in fertile window?

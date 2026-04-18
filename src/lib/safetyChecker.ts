@@ -24,7 +24,7 @@ export function checkSafety(
     if (!limit) continue;
     const newTotal = (currentTotals[ingredient.ingredient] ?? 0) + ingredient.amountMg;
 
-    if (newTotal > limit.maxDailyMg && limit.isHardLimit) {
+    if (newTotal >= limit.maxDailyMg && limit.isHardLimit) {
       violations.push({
         type: 'daily-limit-exceeded',
         severity: 'error',
@@ -35,7 +35,7 @@ export function checkSafety(
           limitMg: limit.maxDailyMg,
         },
       });
-    } else if (limit.warningThresholdMg && newTotal > limit.warningThresholdMg) {
+    } else if (limit.warningThresholdMg && newTotal >= limit.warningThresholdMg) {
       violations.push({
         type: 'approaching-limit',
         severity: 'warning',
@@ -54,16 +54,33 @@ export function checkSafety(
     (i) => i.timestamp > Date.now() - 24 * 60 * 60 * 1000
   );
 
-  if (proposedMed.conflictsWith) {
-    const hasConflict = last24hrs.some((intake) =>
-      proposedMed.conflictsWith!.includes(intake.medicationId)
+  // Check conflicts bidirectionally: proposed med conflicts with history, or history med conflicts with proposed
+  const conflictingIntake = last24hrs.find((intake) => {
+    if (proposedMed.conflictsWith?.includes(intake.medicationId)) return true;
+    const histMed = medications.find((m) => m.id === intake.medicationId);
+    return histMed?.conflictsWith?.includes(proposedMedId) ?? false;
+  });
+  if (conflictingIntake) {
+    violations.push({
+      type: 'conflicting-medications',
+      severity: 'error',
+      messageKey: 'error_conflicting_meds',
+      details: { conflictingMed: conflictingIntake.medicationId },
+    });
+  }
+
+  // NSAID + NSAID warning (no additive benefit, increased GI/renal risk)
+  const NSAIDS: MedicationId[] = ['ibuprofen', 'naproxen'];
+  if (NSAIDS.includes(proposedMedId)) {
+    const otherNsaid = last24hrs.find(
+      (i) => NSAIDS.includes(i.medicationId) && i.medicationId !== proposedMedId
     );
-    if (hasConflict) {
+    if (otherNsaid) {
       violations.push({
         type: 'conflicting-medications',
-        severity: 'error',
-        messageKey: 'error_conflicting_meds',
-        details: { conflictingMed: proposedMed.conflictsWith[0] },
+        severity: 'warning',
+        messageKey: 'warning_dual_nsaid',
+        details: { conflictingMed: otherNsaid.medicationId },
       });
     }
   }

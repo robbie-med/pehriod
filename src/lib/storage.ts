@@ -44,3 +44,23 @@ export function exportAllData(): string {
   });
   return JSON.stringify(data, null, 2);
 }
+
+export function importAllData(json: string): { ok: boolean; error?: string } {
+  if (typeof window === 'undefined') return { ok: false, error: 'Not in browser' };
+  try {
+    const data = JSON.parse(json) as Record<string, unknown>;
+    const validKeys = new Set(Object.keys(STORAGE_KEYS));
+    let imported = 0;
+    for (const [label, value] of Object.entries(data)) {
+      if (validKeys.has(label)) {
+        const storageKey = STORAGE_KEYS[label as keyof typeof STORAGE_KEYS];
+        localStorage.setItem(storageKey, JSON.stringify(value));
+        imported++;
+      }
+    }
+    if (imported === 0) return { ok: false, error: 'No valid data found in file' };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'Invalid JSON file' };
+  }
+}

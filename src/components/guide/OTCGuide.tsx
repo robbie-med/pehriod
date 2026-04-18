@@ -78,8 +78,20 @@ export function OTCGuide({ lang }: Props) {
         {t.guide_intro}
       </div>
 
+      {/* Non-drug — top priority */}
+      <Section title={t.guide_section_nondrug}>
+        <p className="text-gray-500 mb-2">{t.guide_nondrug_intro}</p>
+        <div className="space-y-3">
+          <StrategyItem title={`🔥 ${t.guide_heat_title}`} text={t.guide_heat} />
+          <StrategyItem title={`🏃 ${t.guide_exercise_title}`} text={t.guide_exercise} />
+          <StrategyItem title={`🥗 ${t.guide_diet_title}`} text={t.guide_diet} />
+          <StrategyItem title={`🧘 ${t.guide_stress_title}`} text={t.guide_stress} />
+          <StrategyItem title={`🛋 ${t.guide_posture_title}`} text={t.guide_posture} />
+        </div>
+      </Section>
+
       {/* NSAIDs */}
-      <Section title={`★ ${t.guide_section_nsaids}`}>
+      <Section title={t.guide_section_nsaids}>
         <InfoBox text={`${t.guide_nsaid_why}: ${t.guide_nsaid_why_text}`} variant="info" />
         <DrugCard
           color="orange"
@@ -146,18 +158,6 @@ export function OTCGuide({ lang }: Props) {
         </div>
       </Section>
 
-      {/* Non-drug */}
-      <Section title={t.guide_section_nondrug}>
-        <p className="text-gray-500 mb-2">{t.guide_nondrug_intro}</p>
-        <div className="space-y-3">
-          <StrategyItem title={`🔥 ${t.guide_heat_title}`} text={t.guide_heat} />
-          <StrategyItem title={`🏃 ${t.guide_exercise_title}`} text={t.guide_exercise} />
-          <StrategyItem title={`🥗 ${t.guide_diet_title}`} text={t.guide_diet} />
-          <StrategyItem title={`🧘 ${t.guide_stress_title}`} text={t.guide_stress} />
-          <StrategyItem title={`🛋 ${t.guide_posture_title}`} text={t.guide_posture} />
-        </div>
-      </Section>
-
       {/* Doctor */}
       <Section title={`🏥 ${t.guide_section_doctor}`}>
         <p className="text-gray-600 mb-2">{t.guide_doctor_intro}</p>
@@ -165,6 +165,7 @@ export function OTCGuide({ lang }: Props) {
           {[
             t.guide_doctor_1, t.guide_doctor_2, t.guide_doctor_3,
             t.guide_doctor_4, t.guide_doctor_5, t.guide_doctor_6,
+            t.guide_doctor_7, t.guide_doctor_8,
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="text-red-400 mt-0.5">•</span>

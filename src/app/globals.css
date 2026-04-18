@@ -79,6 +79,15 @@ body {
   border-color: #ec4899;
   box-shadow: 0 0 0 1px #ec489930;
 }
+/* date/time inputs need explicit color-scheme so browser chrome matches app theme */
+.c-input[type="date"],
+.c-input[type="datetime-local"] {
+  color-scheme: light;
+}
+.dark .c-input[type="date"],
+.dark .c-input[type="datetime-local"] {
+  color-scheme: dark;
+}
 
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
 

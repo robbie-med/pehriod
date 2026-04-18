@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Language, languages } from '../../data/translations';
 import { translations } from '../../data/translations';
-import { exportAllData, clearAllStorage } from '../../lib/storage';
+import { exportAllData, clearAllStorage, importAllData } from '../../lib/storage';
 import { useTheme, ThemeMode, ThemeColor } from '../ui/ThemeProvider';
 import { CycleRecord, CycleStats, IntakeRecord, DayLog, SymptomType } from '../../lib/types';
 import { MEDICATIONS } from '../../lib/medications';
@@ -28,16 +28,17 @@ function buildAppointmentSummary(
 ): string {
   if (cycles.length < 2) return t.appt_no_data;
 
-  const date = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
+  const localeMap: Record<string, string> = { ko: 'ko-KR', ar: 'ar-SA', my: 'my-MM', en: 'en-US' };
+  const date = new Date().toLocaleDateString(localeMap[lang] ?? 'en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   });
 
   const regularityLabels: Record<string, string> = {
-    very_regular: lang === 'ko' ? '매우 규칙적' : 'Very regular',
-    regular: lang === 'ko' ? '규칙적' : 'Regular',
-    somewhat_irregular: lang === 'ko' ? '약간 불규칙' : 'Somewhat irregular',
-    irregular: lang === 'ko' ? '불규칙' : 'Irregular',
-    unknown: lang === 'ko' ? '데이터 부족' : 'Unknown',
+    very_regular: t.cycle_regularity_very_regular ?? 'Very regular',
+    regular: t.cycle_regularity_regular ?? 'Regular',
+    somewhat_irregular: t.cycle_regularity_somewhat ?? 'Somewhat irregular',
+    irregular: t.cycle_regularity_irregular ?? 'Irregular',
+    unknown: t.cycle_not_enough_data ?? 'Unknown',
   };
 
   // Pain stats from day logs
@@ -70,15 +71,15 @@ function buildAppointmentSummary(
     .slice(0, 4);
 
   const symLabel: Record<SymptomType, string> = {
-    cramps: lang === 'ko' ? '복통/경련' : 'Cramps',
-    bloating: lang === 'ko' ? '복부 팽만' : 'Bloating',
-    headache: lang === 'ko' ? '두통' : 'Headache',
-    backache: lang === 'ko' ? '요통' : 'Back pain',
-    breast_tenderness: lang === 'ko' ? '유방 압통' : 'Breast tenderness',
-    fatigue: lang === 'ko' ? '피로감' : 'Fatigue',
-    nausea: lang === 'ko' ? '메스꺼움' : 'Nausea',
-    mood_changes: lang === 'ko' ? '기분 변화' : 'Mood changes',
-    acne: lang === 'ko' ? '여드름' : 'Acne',
+    cramps: t.sym_cramps,
+    bloating: t.sym_bloating,
+    headache: t.sym_headache,
+    backache: t.sym_backache,
+    breast_tenderness: t.sym_breast_tenderness,
+    fatigue: t.sym_fatigue,
+    nausea: t.sym_nausea,
+    mood_changes: t.sym_mood_changes,
+    acne: t.sym_acne,
   };
 
   const lines: string[] = [
@@ -123,6 +124,8 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
   const { mode, setMode, color, setColor } = useTheme();
   const [clearConfirm, setClearConfirm] = useState(false);
   const [exported, setExported] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [importError, setImportError] = useState('');
   const [apptCopied, setApptCopied] = useState(false);
   const [showAppt, setShowAppt] = useState(false);
 
@@ -158,6 +161,25 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
     clearAllStorage();
     onClearAll();
     setClearConfirm(false);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = importAllData(ev.target?.result as string);
+      if (result.ok) {
+        setImportStatus('success');
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        setImportStatus('error');
+        setImportError(result.error ?? '');
+        setTimeout(() => setImportStatus('idle'), 3000);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const summary = buildAppointmentSummary(t, cycles, stats, intakeHistory, dayLogs, lang);
@@ -273,6 +295,16 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
           >
             {exported ? `✓ ${t.settings_export_done}` : `⬇ ${t.settings_export}`}
           </button>
+          <label className={`w-full py-2.5 border rounded-lg text-sm text-left px-3 cursor-pointer block ${
+            importStatus === 'success' ? 'border-green-300 text-green-700' :
+            importStatus === 'error' ? 'border-red-300 text-red-600' :
+            'border-gray-200 text-gray-700'
+          }`}>
+            {importStatus === 'success' ? `✓ ${t.settings_import_success}` :
+             importStatus === 'error' ? `✗ ${importError || t.settings_import_error}` :
+             `⬆ ${t.settings_import}`}
+            <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+          </label>
           <button
             onClick={() => setClearConfirm(true)}
             className="w-full py-2.5 border border-red-200 text-red-600 rounded-lg text-sm text-left px-3"

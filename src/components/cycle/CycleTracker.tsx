@@ -302,6 +302,10 @@ export function CycleTracker({
         <div className="grid grid-cols-7 text-center text-xs mb-1">
           {(lang === 'ko'
             ? ['일','월','화','수','목','금','토']
+            : lang === 'ar'
+            ? ['أح','إث','ث','أر','خ','ج','س']
+            : lang === 'my'
+            ? ['တ','လ','အ','ဗ','ကြ','သ','စ']
             : ['Su','Mo','Tu','We','Th','Fr','Sa']
           ).map((d) => (
             <div key={d} className="text-gray-400 font-medium pb-1">{d}</div>
@@ -378,7 +382,8 @@ export function CycleTracker({
                 value={eventDate}
                 max={today}
                 onChange={(e) => setEventDate(e.target.value)}
-                className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+                className="c-input mt-0.5"
+                style={{ colorScheme: 'inherit' }}
               />
             </div>
             <div>
@@ -497,7 +502,8 @@ export function CycleTracker({
                   value={pastStart}
                   max={today}
                   onChange={(e) => setPastStart(e.target.value)}
-                  className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+                  className="c-input mt-0.5"
+                  style={{ colorScheme: 'inherit' }}
                 />
               </div>
               <div>
@@ -507,7 +513,8 @@ export function CycleTracker({
                   value={pastEnd}
                   max={today}
                   onChange={(e) => setPastEnd(e.target.value)}
-                  className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+                  className="c-input mt-0.5"
+                  style={{ colorScheme: 'inherit' }}
                 />
               </div>
               <div>
