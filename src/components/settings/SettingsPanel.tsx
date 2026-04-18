@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Language, languages } from '../../data/translations';
 import { translations } from '../../data/translations';
 import { exportAllData, clearAllStorage } from '../../lib/storage';
-import { useTheme, ThemeMode } from '../ui/ThemeProvider';
+import { useTheme, ThemeMode, ThemeColor } from '../ui/ThemeProvider';
 import { CycleRecord, CycleStats, IntakeRecord, DayLog, SymptomType } from '../../lib/types';
 import { MEDICATIONS } from '../../lib/medications';
 
@@ -120,11 +120,20 @@ function buildAppointmentSummary(
 
 export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stats, intakeHistory, dayLogs }: Props) {
   const t = translations[lang];
-  const { mode, setMode } = useTheme();
+  const { mode, setMode, color, setColor } = useTheme();
   const [clearConfirm, setClearConfirm] = useState(false);
   const [exported, setExported] = useState(false);
   const [apptCopied, setApptCopied] = useState(false);
   const [showAppt, setShowAppt] = useState(false);
+
+  const COLORS: { value: ThemeColor; hex: string }[] = [
+    { value: 'pink',   hex: '#ec4899' },
+    { value: 'purple', hex: '#a855f7' },
+    { value: 'blue',   hex: '#3b82f6' },
+    { value: 'teal',   hex: '#14b8a6' },
+    { value: 'rose',   hex: '#f43f5e' },
+    { value: 'orange', hex: '#f97316' },
+  ];
 
   const THEMES: { value: ThemeMode; label: string }[] = [
     { value: 'auto', label: t.settings_theme_auto },
@@ -198,6 +207,24 @@ export function SettingsPanel({ lang, onLanguageChange, onClearAll, cycles, stat
             >
               {label}
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Accent color */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <h2 className="font-semibold text-gray-800 mb-3">{t.settings_color}</h2>
+        <div className="flex gap-2 flex-wrap">
+          {COLORS.map(({ value, hex }) => (
+            <button
+              key={value}
+              onClick={() => setColor(value)}
+              title={t[`color_${value}` as keyof typeof t] as string}
+              className={`w-9 h-9 rounded-full border-2 transition-all ${
+                color === value ? 'border-gray-700 scale-110' : 'border-transparent'
+              }`}
+              style={{ backgroundColor: hex }}
+            />
           ))}
         </div>
       </div>

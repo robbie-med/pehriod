@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { CycleRecord, DayLog, FlowLevel } from '../lib/types';
+import { CycleRecord, DayLog, FlowLevel, CalendarEvent } from '../lib/types';
 import { STORAGE_KEYS } from '../lib/storage';
 import { getCycleStats, todayISO, getDatesInRange } from '../lib/cycleCalculator';
 
@@ -12,6 +12,11 @@ export function useCycleData() {
 
   const [dayLogs, setDayLogs] = useLocalStorage<DayLog[]>(
     STORAGE_KEYS.DAY_LOGS,
+    []
+  );
+
+  const [calendarEvents, setCalendarEvents] = useLocalStorage<CalendarEvent[]>(
+    STORAGE_KEYS.CALENDAR_EVENTS,
     []
   );
 
@@ -95,9 +100,27 @@ export function useCycleData() {
     [dayLogs]
   );
 
+  const logCalendarEvent = useCallback(
+    (event: Omit<CalendarEvent, 'id'>) => {
+      setCalendarEvents((prev) => [
+        ...prev.filter((e) => !(e.date === event.date && e.type === event.type)),
+        { ...event, id: crypto.randomUUID() },
+      ]);
+    },
+    [setCalendarEvents]
+  );
+
+  const deleteCalendarEvent = useCallback(
+    (id: string) => {
+      setCalendarEvents((prev) => prev.filter((e) => e.id !== id));
+    },
+    [setCalendarEvents]
+  );
+
   return {
     cycles,
     dayLogs,
+    calendarEvents,
     stats,
     startPeriod,
     endPeriod,
@@ -106,5 +129,7 @@ export function useCycleData() {
     deleteCycle,
     saveDayLog,
     getDayLog,
+    logCalendarEvent,
+    deleteCalendarEvent,
   };
 }

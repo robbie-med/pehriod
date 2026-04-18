@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CycleRecord, CycleStats, FlowLevel, DayLog } from '../../lib/types';
+import { CycleRecord, CycleStats, FlowLevel, DayLog, CalendarEvent, CalendarEventType } from '../../lib/types';
 import { getPeriodDatesSet, todayISO, daysUntil, addDays } from '../../lib/cycleCalculator';
 import { translations, Language } from '../../data/translations';
 import { CycleInsights } from '../features/CycleInsights';
@@ -9,12 +9,15 @@ import { CycleInsights } from '../features/CycleInsights';
 interface Props {
   cycles: CycleRecord[];
   dayLogs: DayLog[];
+  calendarEvents: CalendarEvent[];
   stats: CycleStats;
   onStartPeriod: () => void;
   onEndPeriod: () => void;
   onLogFlow: (date: string, flow: FlowLevel) => void;
   onDeleteCycle: (id: string) => void;
   onAddPastCycle: (start: string, end: string, flow: FlowLevel) => void;
+  onLogCalendarEvent: (event: Omit<CalendarEvent, 'id'>) => void;
+  onDeleteCalendarEvent: (id: string) => void;
   lang: Language;
 }
 
@@ -34,9 +37,11 @@ const flowDot: Record<FlowLevel, string> = {
   heavy: 'bg-red-600',
 };
 
+const EVENT_TYPES: CalendarEventType[] = ['stress', 'travel', 'timezone', 'illness', 'exercise', 'other'];
+
 export function CycleTracker({
-  cycles, dayLogs, stats, onStartPeriod, onEndPeriod, onLogFlow,
-  onDeleteCycle, onAddPastCycle, lang,
+  cycles, dayLogs, calendarEvents, stats, onStartPeriod, onEndPeriod, onLogFlow,
+  onDeleteCycle, onAddPastCycle, onLogCalendarEvent, onDeleteCalendarEvent, lang,
 }: Props) {
   const t = translations[lang];
   const today = todayISO();
@@ -52,25 +57,27 @@ export function CycleTracker({
   const [pastEnd, setPastEnd] = useState('');
   const [pastFlow, setPastFlow] = useState<FlowLevel>('medium');
   const [addPastError, setAddPastError] = useState('');
+  const [showEventLog, setShowEventLog] = useState(false);
+  const [eventDate, setEventDate] = useState(today);
+  const [eventType, setEventType] = useState<CalendarEventType>('stress');
+  const [eventNotes, setEventNotes] = useState('');
+  const [eventSaved, setEventSaved] = useState(false);
 
   const periodDates = getPeriodDatesSet(cycles);
+  const eventDateSet = new Set(calendarEvents.map((e) => e.date));
 
-  // Predicted/fertile date sets for calendar
+  // Predicted/fertile date sets for calendar (all upcoming cycles within view year)
   const predictedDates = new Set<string>();
   const fertileDates = new Set<string>();
-  if (stats.nextPredictedStart && !stats.isOnPeriod) {
-    // Show 5-day predicted period
-    for (let i = 0; i < 5; i++) {
-      const d = addDays(stats.nextPredictedStart, i);
+  const avgPeriodLen = stats.averagePeriodLength ?? 5;
+  for (const uc of stats.upcomingCycles) {
+    for (let i = 0; i < avgPeriodLen; i++) {
+      const d = addDays(uc.periodStart, i);
       if (d > today) predictedDates.add(d);
     }
-  }
-  if (stats.fertileWindowStart && stats.fertileWindowEnd) {
-    const start = stats.fertileWindowStart;
-    const end = stats.fertileWindowEnd;
-    let d = start;
-    while (d <= end) {
-      if (d > today || d === today) fertileDates.add(d);
+    let d = uc.fertileStart;
+    while (d <= uc.fertileEnd) {
+      if (d >= today) fertileDates.add(d);
       d = addDays(d, 1);
     }
   }
@@ -123,6 +130,13 @@ export function CycleTracker({
     setPastEnd('');
     setPastFlow('medium');
     setShowAddPast(false);
+  };
+
+  const handleLogEvent = () => {
+    onLogCalendarEvent({ date: eventDate, type: eventType, notes: eventNotes || undefined });
+    setEventNotes('');
+    setEventSaved(true);
+    setTimeout(() => setEventSaved(false), 1500);
   };
 
   const regularityLabel: Record<string, { label: string; color: string }> = {
@@ -240,9 +254,35 @@ export function CycleTracker({
             )}
 
             <p className="text-xs text-gray-400 italic">{t.cycle_prediction_note}</p>
+
+            {/* Upcoming cycles list (year view) */}
+            {stats.upcomingCycles.length > 1 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400 font-medium mb-2">
+                  {lang === 'ko' ? '향후 1년 예측' : lang === 'ar' ? 'توقعات لمدة سنة' : lang === 'my' ? 'တစ်နှစ် ခန့်မှန်းချက်' : 'Next 12 months'}
+                </p>
+                <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                  {stats.upcomingCycles.slice(1).map((uc, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="font-medium text-pink-600">{formatDate(uc.periodStart)}</span>
+                      <span className="text-green-600 ml-2">🌿 {formatDate(uc.fertileStart)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Irregularity reassurance — shown when cycles are few or irregular */}
+      {(stats.totalCycles < 6 || stats.regularity === 'irregular' || stats.regularity === 'somewhat_irregular' || stats.regularity === 'unknown') && (
+        <div className="bg-blue-50 rounded-xl border border-blue-100 p-4">
+          <p className="font-semibold text-blue-800 text-sm mb-1">ℹ️ {t.cycle_irregular_ok_title}</p>
+          <p className="text-xs text-blue-700 leading-relaxed mb-2">{t.cycle_irregular_ok_body}</p>
+          <p className="text-xs text-blue-500 italic">{t.cycle_irregular_ok_note}</p>
+        </div>
+      )}
 
       {/* Cycle insights */}
       <CycleInsights cycles={cycles} dayLogs={dayLogs} lang={lang} />
@@ -276,6 +316,7 @@ export function CycleTracker({
             const isPeriod = periodDates.has(date);
             const isFertile = !isPeriod && fertileDates.has(date);
             const isPredicted = !isPeriod && !isFertile && predictedDates.has(date);
+            const hasEvent = eventDateSet.has(date);
             const flow = getFlowForDate(date);
             const isSelected = selectedDay === date;
 
@@ -290,7 +331,7 @@ export function CycleTracker({
               <button
                 key={i}
                 onClick={() => setSelectedDay(date === selectedDay ? null : date)}
-                className={`aspect-square flex items-center justify-center rounded-full text-xs transition-colors
+                className={`aspect-square flex flex-col items-center justify-center rounded-full text-xs transition-colors relative
                   ${bgClass} ${textClass}
                   ${isToday ? 'ring-2 ring-pink-500 ring-offset-1' : ''}
                   ${isSelected ? 'ring-2 ring-gray-400 ring-offset-1' : ''}
@@ -298,6 +339,9 @@ export function CycleTracker({
                 `}
               >
                 {day}
+                {hasEvent && (
+                  <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-yellow-400" />
+                )}
               </button>
             );
           })}
@@ -309,7 +353,93 @@ export function CycleTracker({
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-600" /><span>{t.flow_heavy}</span></div>
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300" /><span>{t.cycle_fertile_window}</span></div>
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-pink-50 border border-pink-200" /><span>{lang === 'ko' ? '예상' : 'Predicted'}</span></div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-yellow-400" /><span>{t.event_log_title}</span></div>
         </div>
+      </div>
+
+      {/* Calendar Event Logger */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-semibold text-gray-800">{t.event_log_title}</h2>
+          <button
+            onClick={() => setShowEventLog((v) => !v)}
+            className="text-xs text-pink-600 border border-pink-200 rounded-full px-3 py-1"
+          >
+            {showEventLog ? '▲' : '+ Log'}
+          </button>
+        </div>
+
+        {showEventLog && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-500">{t.event_log_date}</label>
+              <input
+                type="date"
+                value={eventDate}
+                max={today}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">{t.event_log_title}</label>
+              <div className="flex flex-wrap gap-1.5">
+                {EVENT_TYPES.map((et) => (
+                  <button
+                    key={et}
+                    onClick={() => setEventType(et)}
+                    className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                      eventType === et
+                        ? 'bg-pink-500 text-white border-pink-500'
+                        : 'border-gray-200 text-gray-600'
+                    }`}
+                  >
+                    {t[`event_${et}` as keyof typeof t] as string}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <textarea
+              value={eventNotes}
+              onChange={(e) => setEventNotes(e.target.value)}
+              placeholder={t.event_notes_placeholder as string}
+              rows={2}
+              className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-pink-300"
+            />
+            <button
+              onClick={handleLogEvent}
+              className="w-full py-2 bg-pink-500 text-white rounded-lg text-sm font-medium"
+            >
+              {eventSaved ? `✓ ${t.event_logged}` : t.event_log_title}
+            </button>
+          </div>
+        )}
+
+        {/* Existing events */}
+        {calendarEvents.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-50">
+            <p className="text-xs text-gray-400 mb-2">{t.event_existing}</p>
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {[...calendarEvents]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .map((ev) => (
+                  <div key={ev.id} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">{formatDate(ev.date)}</span>
+                    <span className="text-gray-700 font-medium mx-2">
+                      {t[`event_${ev.type}` as keyof typeof t] as string}
+                    </span>
+                    {ev.notes && <span className="text-gray-400 truncate max-w-24">{ev.notes}</span>}
+                    <button
+                      onClick={() => onDeleteCalendarEvent(ev.id)}
+                      className="text-gray-300 hover:text-red-400 ml-2"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Selected day flow log */}

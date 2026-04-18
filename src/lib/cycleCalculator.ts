@@ -1,4 +1,4 @@
-import { CycleRecord, CycleStats } from './types';
+import { CycleRecord, CycleStats, PredictedCycle } from './types';
 
 export function isoToDate(iso: string): Date {
   return new Date(iso + 'T00:00:00');
@@ -91,6 +91,23 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     today >= fertileWindowStart &&
     today <= fertileWindowEnd;
 
+  // Generate up to 1 year of upcoming cycle predictions
+  const upcomingCycles: PredictedCycle[] = [];
+  if (nextPredicted && avgCycle) {
+    const oneYearOut = addDays(today, 365);
+    let cursor = nextPredicted;
+    while (cursor <= oneYearOut) {
+      const ov = addDays(cursor, -14);
+      upcomingCycles.push({
+        periodStart: cursor,
+        ovulationDay: ov,
+        fertileStart: addDays(ov, -3),
+        fertileEnd: addDays(ov, 2),
+      });
+      cursor = addDays(cursor, avgCycle);
+    }
+  }
+
   // Current cycle day (days since last cycle start)
   let currentCycleDay: number | null = null;
   if (sorted.length > 0) {
@@ -120,6 +137,7 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     currentCycleDay,
     isOnPeriod,
     currentPeriodDay,
+    upcomingCycles,
   };
 }
 

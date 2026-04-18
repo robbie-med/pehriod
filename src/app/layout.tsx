@@ -5,14 +5,15 @@ import { ThemeProvider } from '../components/ui/ThemeProvider';
 export const metadata: Metadata = {
   title: 'Pehriod — Period Pain Manager',
   description: 'Cycle tracker, OTC drug guide, and medication safety log. Fully offline.',
-  manifest: '/pehriod/manifest.json',
+  manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Pehriod' },
   icons: {
     icon: [
-      { url: '/pehriod/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/pehriod/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [{ url: '/pehriod/icon-192.png', sizes: '192x192' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
 };
 
@@ -33,12 +34,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('pehriod_theme');if(t==='dark')document.documentElement.classList.add('dark');else if(t==='light')document.documentElement.classList.add('light');else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark')}catch(e){}})();`,
+            __html: `(function(){try{
+              var t=localStorage.getItem('pehriod_theme');
+              var h=document.documentElement;
+              if(t==='dark'){h.classList.add('dark');}
+              else if(t==='light'){h.classList.add('light');}
+              else if(window.matchMedia('(prefers-color-scheme:dark)').matches){h.classList.add('dark');}
+              var c=localStorage.getItem('pehriod_theme_color');
+              if(c&&c!=='pink'){h.setAttribute('data-theme',c);}
+            }catch(e){}})();`,
           }}
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/pehriod/sw.js',{scope:'/pehriod/'}).catch(function(){});})}`,
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});})}`,
           }}
         />
       </head>

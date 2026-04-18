@@ -1,42 +1,44 @@
 @import "tailwindcss";
 
-/* Class-based dark mode override: .dark on <html> or ancestor */
+/* Class-based dark mode — .dark on <html> */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── Semantic tokens ───────────────────────────────────────── */
 :root {
-  --bg:        #f9fafb;
-  --card:      #ffffff;
-  --card2:     #f9fafb;
-  --txt1:      #111827;
-  --txt2:      #4b5563;
-  --txt3:      #9ca3af;
-  --bdr:       #f3f4f6;
-  --bdr2:      #e5e7eb;
+  --bg:   #f9fafb;
+  --card: #ffffff;
+  --card2:#f3f4f6;
+  --txt1: #111827;
+  --txt2: #4b5563;
+  --txt3: #9ca3af;
+  --bdr:  #f3f4f6;
+  --bdr2: #e5e7eb;
 }
 
 .dark {
-  --bg:        #0b1120;
-  --card:      #1a2235;
-  --card2:     #0f1826;
-  --txt1:      #f1f5f9;
-  --txt2:      #94a3b8;
-  --txt3:      #4a5568;
-  --bdr:       #1e2d40;
-  --bdr2:      #2d3f55;
+  --bg:   #0b1120;
+  --card: #1a2235;
+  --card2:#0f1826;
+  --txt1: #f1f5f9;
+  --txt2: #94a3b8;
+  --txt3: #475569;
+  --bdr:  #1e2d40;
+  --bdr2: #2d3f55;
+  color-scheme: dark;
 }
 
-/* Auto dark mode via OS preference when no explicit class is set */
+/* Auto dark via OS (also triggers when .dark not yet applied) */
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --bg:    #0b1120;
-    --card:  #1a2235;
-    --card2: #0f1826;
-    --txt1:  #f1f5f9;
-    --txt2:  #94a3b8;
-    --txt3:  #4a5568;
-    --bdr:   #1e2d40;
-    --bdr2:  #2d3f55;
+  :root:not(.light):not(.dark) {
+    --bg:   #0b1120;
+    --card: #1a2235;
+    --card2:#0f1826;
+    --txt1: #f1f5f9;
+    --txt2: #94a3b8;
+    --txt3: #475569;
+    --bdr:  #1e2d40;
+    --bdr2: #2d3f55;
+    color-scheme: dark;
   }
 }
 
@@ -46,17 +48,16 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ── Semantic utility shorthands ──────────────────────────── */
-.bg-page      { background: var(--bg); }
-.bg-card      { background: var(--card); }
-.bg-card2     { background: var(--card2); }
-.text-t1      { color: var(--txt1); }
-.text-t2      { color: var(--txt2); }
-.text-t3      { color: var(--txt3); }
-.border-b1    { border-color: var(--bdr); }
-.border-b2    { border-color: var(--bdr2); }
+/* ── Semantic utility classes ──────────────────────────────── */
+.bg-page  { background: var(--bg); }
+.bg-card  { background: var(--card); }
+.bg-card2 { background: var(--card2); }
+.text-t1  { color: var(--txt1); }
+.text-t2  { color: var(--txt2); }
+.text-t3  { color: var(--txt3); }
+.border-b1 { border-color: var(--bdr); }
+.border-b2 { border-color: var(--bdr2); }
 
-/* ── Card component ───────────────────────────────────────── */
 .c-card {
   background: var(--card);
   border: 1px solid var(--bdr);
@@ -64,7 +65,6 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
 
-/* ── Inputs ───────────────────────────────────────────────── */
 .c-input {
   background: var(--card2);
   border: 1px solid var(--bdr2);
@@ -80,5 +80,186 @@ body {
   box-shadow: 0 0 0 1px #ec489930;
 }
 
-/* Safe area for iOS home bar */
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+   Unlayered CSS beats @layer utilities in Tailwind v4.
+   These fire whenever the .dark class is on an ancestor.
+═══════════════════════════════════════════════════════════ */
+.dark .bg-white     { background-color: var(--card); }
+.dark .bg-gray-50   { background-color: var(--card2); }
+.dark .bg-gray-100  { background-color: var(--bdr); }
+.dark .bg-gray-200  { background-color: var(--bdr2); }
+
+.dark .text-gray-900,
+.dark .text-gray-800 { color: var(--txt1); }
+.dark .text-gray-700 { color: var(--txt1); }
+.dark .text-gray-600 { color: var(--txt2); }
+.dark .text-gray-500 { color: var(--txt2); }
+.dark .text-gray-400 { color: var(--txt3); }
+.dark .text-gray-300 { color: var(--txt3); }
+
+.dark .border-gray-50,
+.dark .border-gray-100 { border-color: var(--bdr); }
+.dark .border-gray-200,
+.dark .border-gray-300 { border-color: var(--bdr2); }
+
+/* Native form controls */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--card2);
+  color: var(--txt1);
+  border-color: var(--bdr2);
+  color-scheme: dark;
+}
+
+/* Colored card backgrounds in dark mode */
+.dark .bg-pink-50   { background-color: #1f1221; }
+.dark .bg-pink-100  { background-color: #2d1840; }
+.dark .bg-orange-50 { background-color: #1f1410; }
+.dark .bg-orange-100{ background-color: #2d1e10; }
+.dark .bg-blue-50   { background-color: #0f1829; }
+.dark .bg-blue-100  { background-color: #0f2040; }
+.dark .bg-green-50  { background-color: #0e1b15; }
+.dark .bg-green-100 { background-color: #112518; }
+.dark .bg-purple-50 { background-color: #180f2e; }
+.dark .bg-purple-100{ background-color: #221242; }
+.dark .bg-yellow-50 { background-color: #1a1600; }
+.dark .bg-red-50    { background-color: #1f0e0e; }
+
+/* Colored borders in dark */
+.dark .border-pink-100  { border-color: #4a2244; }
+.dark .border-pink-200  { border-color: #6b2161; }
+.dark .border-orange-200{ border-color: #7c3d12; }
+.dark .border-blue-100  { border-color: #1a3060; }
+.dark .border-blue-200  { border-color: #1e4080; }
+.dark .border-green-200 { border-color: #15523a; }
+.dark .border-purple-200{ border-color: #3b1f6e; }
+.dark .border-yellow-200{ border-color: #7c6800; }
+.dark .border-red-200   { border-color: #6b1414; }
+
+/* Colored text that should lighten in dark */
+.dark .text-gray-700.text-xs { color: var(--txt2); }
+
+/* Shadows softer in dark */
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+
+/* ═══════════════════════════════════════════════════════════
+   THEME COLOR OVERRIDES
+   data-theme attribute on <html> swaps the pink accent.
+═══════════════════════════════════════════════════════════ */
+
+/* ─── Purple ─── */
+[data-theme="purple"] .bg-pink-500, [data-theme="purple"] .bg-pink-400 { background-color: #a855f7; }
+[data-theme="purple"] .bg-pink-300 { background-color: #c084fc; }
+[data-theme="purple"] .bg-pink-100 { background-color: #f3e8ff; }
+[data-theme="purple"] .bg-pink-50  { background-color: #faf5ff; }
+[data-theme="purple"] .text-pink-900 { color: #581c87; }
+[data-theme="purple"] .text-pink-800 { color: #6b21a8; }
+[data-theme="purple"] .text-pink-700 { color: #7e22ce; }
+[data-theme="purple"] .text-pink-600 { color: #9333ea; }
+[data-theme="purple"] .text-pink-500 { color: #a855f7; }
+[data-theme="purple"] .text-pink-400 { color: #c084fc; }
+[data-theme="purple"] .border-pink-500 { border-color: #a855f7; }
+[data-theme="purple"] .border-pink-400 { border-color: #c084fc; }
+[data-theme="purple"] .border-pink-300 { border-color: #d8b4fe; }
+[data-theme="purple"] .border-pink-200 { border-color: #e9d5ff; }
+[data-theme="purple"] .border-pink-100 { border-color: #f3e8ff; }
+[data-theme="purple"] .ring-pink-500   { --tw-ring-color: #a855f7; }
+[data-theme="purple"] .ring-pink-300   { --tw-ring-color: #d8b4fe; }
+[data-theme="purple"] .accent-pink-500 { accent-color: #a855f7; }
+[data-theme="purple"] .border-l-2.border-pink-300 { border-color: #d8b4fe; }
+
+/* ─── Blue ─── */
+[data-theme="blue"] .bg-pink-500, [data-theme="blue"] .bg-pink-400 { background-color: #3b82f6; }
+[data-theme="blue"] .bg-pink-300 { background-color: #60a5fa; }
+[data-theme="blue"] .bg-pink-100 { background-color: #dbeafe; }
+[data-theme="blue"] .bg-pink-50  { background-color: #eff6ff; }
+[data-theme="blue"] .text-pink-900 { color: #1e3a8a; }
+[data-theme="blue"] .text-pink-800 { color: #1e40af; }
+[data-theme="blue"] .text-pink-700 { color: #1d4ed8; }
+[data-theme="blue"] .text-pink-600 { color: #2563eb; }
+[data-theme="blue"] .text-pink-500 { color: #3b82f6; }
+[data-theme="blue"] .text-pink-400 { color: #60a5fa; }
+[data-theme="blue"] .border-pink-500 { border-color: #3b82f6; }
+[data-theme="blue"] .border-pink-400 { border-color: #60a5fa; }
+[data-theme="blue"] .border-pink-300 { border-color: #93c5fd; }
+[data-theme="blue"] .border-pink-200 { border-color: #bfdbfe; }
+[data-theme="blue"] .border-pink-100 { border-color: #dbeafe; }
+[data-theme="blue"] .ring-pink-500   { --tw-ring-color: #3b82f6; }
+[data-theme="blue"] .ring-pink-300   { --tw-ring-color: #93c5fd; }
+[data-theme="blue"] .accent-pink-500 { accent-color: #3b82f6; }
+[data-theme="blue"] .border-l-2.border-pink-300 { border-color: #93c5fd; }
+
+/* ─── Teal ─── */
+[data-theme="teal"] .bg-pink-500, [data-theme="teal"] .bg-pink-400 { background-color: #14b8a6; }
+[data-theme="teal"] .bg-pink-300 { background-color: #2dd4bf; }
+[data-theme="teal"] .bg-pink-100 { background-color: #ccfbf1; }
+[data-theme="teal"] .bg-pink-50  { background-color: #f0fdfa; }
+[data-theme="teal"] .text-pink-900 { color: #134e4a; }
+[data-theme="teal"] .text-pink-800 { color: #115e59; }
+[data-theme="teal"] .text-pink-700 { color: #0f766e; }
+[data-theme="teal"] .text-pink-600 { color: #0d9488; }
+[data-theme="teal"] .text-pink-500 { color: #14b8a6; }
+[data-theme="teal"] .text-pink-400 { color: #2dd4bf; }
+[data-theme="teal"] .border-pink-500 { border-color: #14b8a6; }
+[data-theme="teal"] .border-pink-400 { border-color: #2dd4bf; }
+[data-theme="teal"] .border-pink-300 { border-color: #5eead4; }
+[data-theme="teal"] .border-pink-200 { border-color: #99f6e4; }
+[data-theme="teal"] .border-pink-100 { border-color: #ccfbf1; }
+[data-theme="teal"] .ring-pink-500   { --tw-ring-color: #14b8a6; }
+[data-theme="teal"] .ring-pink-300   { --tw-ring-color: #5eead4; }
+[data-theme="teal"] .accent-pink-500 { accent-color: #14b8a6; }
+[data-theme="teal"] .border-l-2.border-pink-300 { border-color: #5eead4; }
+
+/* ─── Rose ─── */
+[data-theme="rose"] .bg-pink-500, [data-theme="rose"] .bg-pink-400 { background-color: #f43f5e; }
+[data-theme="rose"] .bg-pink-300 { background-color: #fb7185; }
+[data-theme="rose"] .bg-pink-100 { background-color: #ffe4e6; }
+[data-theme="rose"] .bg-pink-50  { background-color: #fff1f2; }
+[data-theme="rose"] .text-pink-900 { color: #881337; }
+[data-theme="rose"] .text-pink-800 { color: #9f1239; }
+[data-theme="rose"] .text-pink-700 { color: #be123c; }
+[data-theme="rose"] .text-pink-600 { color: #e11d48; }
+[data-theme="rose"] .text-pink-500 { color: #f43f5e; }
+[data-theme="rose"] .text-pink-400 { color: #fb7185; }
+[data-theme="rose"] .border-pink-500 { border-color: #f43f5e; }
+[data-theme="rose"] .border-pink-400 { border-color: #fb7185; }
+[data-theme="rose"] .border-pink-300 { border-color: #fda4af; }
+[data-theme="rose"] .border-pink-200 { border-color: #fecdd3; }
+[data-theme="rose"] .border-pink-100 { border-color: #ffe4e6; }
+[data-theme="rose"] .ring-pink-500   { --tw-ring-color: #f43f5e; }
+[data-theme="rose"] .ring-pink-300   { --tw-ring-color: #fda4af; }
+[data-theme="rose"] .accent-pink-500 { accent-color: #f43f5e; }
+[data-theme="rose"] .border-l-2.border-pink-300 { border-color: #fda4af; }
+
+/* ─── Orange ─── */
+[data-theme="orange"] .bg-pink-500, [data-theme="orange"] .bg-pink-400 { background-color: #f97316; }
+[data-theme="orange"] .bg-pink-300 { background-color: #fb923c; }
+[data-theme="orange"] .bg-pink-100 { background-color: #ffedd5; }
+[data-theme="orange"] .bg-pink-50  { background-color: #fff7ed; }
+[data-theme="orange"] .text-pink-900 { color: #7c2d12; }
+[data-theme="orange"] .text-pink-800 { color: #9a3412; }
+[data-theme="orange"] .text-pink-700 { color: #c2410c; }
+[data-theme="orange"] .text-pink-600 { color: #ea580c; }
+[data-theme="orange"] .text-pink-500 { color: #f97316; }
+[data-theme="orange"] .text-pink-400 { color: #fb923c; }
+[data-theme="orange"] .border-pink-500 { border-color: #f97316; }
+[data-theme="orange"] .border-pink-400 { border-color: #fb923c; }
+[data-theme="orange"] .border-pink-300 { border-color: #fdba74; }
+[data-theme="orange"] .border-pink-200 { border-color: #fed7aa; }
+[data-theme="orange"] .border-pink-100 { border-color: #ffedd5; }
+[data-theme="orange"] .ring-pink-500   { --tw-ring-color: #f97316; }
+[data-theme="orange"] .ring-pink-300   { --tw-ring-color: #fdba74; }
+[data-theme="orange"] .accent-pink-500 { accent-color: #f97316; }
+[data-theme="orange"] .border-l-2.border-pink-300 { border-color: #fdba74; }
+
+/* Also override dark + theme combinations for colored card backgrounds */
+.dark[data-theme="purple"] .bg-pink-50,
+.dark [data-theme="purple"] .bg-pink-50 { background-color: #1e1035; }
+.dark[data-theme="blue"] .bg-pink-50,
+.dark [data-theme="blue"] .bg-pink-50   { background-color: #0f1829; }
+.dark[data-theme="teal"] .bg-pink-50,
+.dark [data-theme="teal"] .bg-pink-50   { background-color: #0a1f1c; }

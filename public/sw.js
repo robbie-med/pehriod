@@ -1,14 +1,14 @@
 // Pehriod Service Worker — offline-first PWA
-const CACHE = 'pehriod-v3';
-const BASE = '/pehriod';
+const CACHE = 'pehriod-v4';
+const BASE = '';
 
 // App shell — always cached on install
 const SHELL = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/manifest.json',
-  BASE + '/icon-192.png',
-  BASE + '/icon-512.png',
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
 ];
 
 self.addEventListener('install', (e) => {
@@ -54,7 +54,6 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(request)
         .then((res) => {
-          // Cache successful navigations
           if (res.ok) {
             const clone = res.clone();
             caches.open(CACHE).then((c) => c.put(request, clone));
@@ -63,7 +62,7 @@ self.addEventListener('fetch', (e) => {
         })
         .catch(() =>
           caches.match(request)
-            .then((hit) => hit || caches.match(BASE + '/') || caches.match(BASE + '/index.html'))
+            .then((hit) => hit || caches.match('/') || caches.match('/index.html'))
         )
     );
     return;

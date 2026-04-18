@@ -130,6 +130,22 @@ export interface DayLog {
 
 export type CycleRegularity = 'very_regular' | 'regular' | 'somewhat_irregular' | 'irregular' | 'unknown';
 
+export type CalendarEventType = 'stress' | 'travel' | 'timezone' | 'illness' | 'exercise' | 'other';
+
+export interface CalendarEvent {
+  id: string;
+  date: string;
+  type: CalendarEventType;
+  notes?: string;
+}
+
+export interface PredictedCycle {
+  periodStart: string;     // ISO date
+  ovulationDay: string;    // ISO date
+  fertileStart: string;    // ISO date
+  fertileEnd: string;      // ISO date
+}
+
 export interface CycleStats {
   totalCycles: number;
   averageCycleLength: number | null;
@@ -144,4 +160,5 @@ export interface CycleStats {
   currentCycleDay: number | null;
   isOnPeriod: boolean;
   currentPeriodDay: number | null;
+  upcomingCycles: PredictedCycle[];    // up to 1 year of future predictions
 }

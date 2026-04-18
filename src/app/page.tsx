@@ -25,8 +25,11 @@ export default function Home() {
   const { intakeHistory, painLevel, setPainLevel, doseTotals, logIntake, deleteIntake, clearHistory } =
     useMedicationData();
 
-  const { cycles, dayLogs, stats, startPeriod, endPeriod, addPastCycle, logFlow, deleteCycle, saveDayLog, getDayLog } =
-    useCycleData();
+  const {
+    cycles, dayLogs, calendarEvents, stats,
+    startPeriod, endPeriod, addPastCycle, logFlow, deleteCycle,
+    saveDayLog, getDayLog, logCalendarEvent, deleteCalendarEvent,
+  } = useCycleData();
 
   const t = translations[lang];
 
@@ -75,12 +78,15 @@ export default function Home() {
           <CycleTracker
             cycles={cycles}
             dayLogs={dayLogs}
+            calendarEvents={calendarEvents}
             stats={stats}
             onStartPeriod={startPeriod}
             onEndPeriod={endPeriod}
             onLogFlow={logFlow}
             onDeleteCycle={deleteCycle}
             onAddPastCycle={addPastCycle}
+            onLogCalendarEvent={logCalendarEvent}
+            onDeleteCalendarEvent={deleteCalendarEvent}
             lang={lang}
           />
         )}
