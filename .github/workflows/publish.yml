@@ -1,0 +1,37 @@
+name: Publish prebuilt APK
+
+on:
+  push:
+    branches: [release-apk]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify checksum and signing certificate
+        run: |
+          APK=$(ls pehriod-*.apk | sort -V | tail -1)
+          sha256sum -c "$APK.sha256"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK" | tee certs.txt
+          grep -qi "SHA-256 digest: 0eaef0e2f069e1ac2c4ffed2deaa8723fb2a093ff719e2ee56748d4b242fb112" certs.txt \
+            || { echo "::error::$APK is not signed with the Pehriod release key"; exit 1; }
+          echo "APK=$APK" >> "$GITHUB_ENV"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${APK#pehriod-}; V=${V%.apk}; TAG="v$V"
+          SRC=$(cat SOURCE_COMMIT)
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$APK.sha256" --repo "$GITHUB_REPOSITORY" \
+              --title "Pehriod $V" --notes-file NOTES.md --target "$SRC"
+          fi
