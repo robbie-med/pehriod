@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pehriod teardrop, scaled into the adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group android:pivotX="256" android:pivotY="267" android:scaleX="0.78" android:scaleY="0.78" android:translateY="-11">
+        <path android:fillColor="#FFFFFF" android:pathData="M 256 88 C 322 158 392 215 392 310 A 136 136 0 0 1 120 310 C 120 215 190 158 256 88 Z" />
+        <path android:fillColor="#47FFFFFF" android:pathData="M 256 128 C 210 188 148 244 136 306 C 129 278 130 256 144 233 C 168 195 212 160 256 128 Z" />
+    </group>
+</vector>

@@ -1,0 +1,6 @@
+First Android release.
+• One-tap bleeding log with blood-loss scoring
+• Relief check an hour after each painkiller
+• Pre-visit questionnaire and bilingual doctor report
+• Optional trackers with 90-day trends
+• Warm light and dark themes

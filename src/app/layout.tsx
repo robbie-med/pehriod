@@ -43,7 +43,8 @@ var l=JSON.parse(localStorage.getItem('pehriod_language')||'null');
 if(l){h.lang=l;h.dir=l==='ar'?'rtl':'ltr';}
 }catch(e){}})();`;
 
-const SW_SCRIPT = `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});})}`;
+// The Android app serves its own files; the service worker is only for the website.
+const SW_SCRIPT = `if('serviceWorker' in navigator&&!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});})}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -14,7 +14,8 @@ import { BleedEntry, IntakeRecord, MedicationId, Relief } from '../lib/types';
 import { applyBleed, uid } from '../lib/period';
 import { isoToDate, todayISO } from '../lib/dates';
 import { MEDICATIONS } from '../lib/medications';
-import { nextReliefDueMs } from '../lib/relief';
+import { RELIEF_ASK_AFTER_MS, nextReliefDueMs } from '../lib/relief';
+import { cancelReliefReminder, onBackButton, scheduleReliefReminder } from '../lib/native';
 import { buildReport } from '../lib/report';
 import { buildEvidence } from '../lib/evidence';
 
@@ -131,11 +132,24 @@ function App({ lang, setLang, t }: { lang: Language; setLang: (l: Language) => v
     const recId = meds.logIntake(id, ts, todayLog?.painLevel);
     buzz();
     const med = MEDICATIONS.find((m) => m.id === id)!;
+    const name = t[med.nameKey as keyof T] as string;
     const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    toast(`${t[med.nameKey as keyof T] as string} · ${time}`, () => meds.deleteIntake(recId));
+    scheduleReliefReminder(recId, ts + RELIEF_ASK_AFTER_MS, name, t.relief_q);
+    toast(`${name} · ${time}`, () => {
+      meds.deleteIntake(recId);
+      cancelReliefReminder(recId);
+    });
   }, [meds, todayLog?.painLevel, t, toast]);
 
-  const onRelief = useCallback((id: string, r: Relief | null | undefined) => meds.setRelief(id, r), [meds]);
+  const onRelief = useCallback((id: string, r: Relief | null | undefined) => {
+    meds.setRelief(id, r);
+    if (r !== undefined) cancelReliefReminder(id);
+  }, [meds]);
+
+  const onDeleteIntake = useCallback((id: string) => {
+    meds.deleteIntake(id);
+    cancelReliefReminder(id);
+  }, [meds]);
 
   const report = useMemo(
     () => (reportOpen ? buildReport(cycles, bleeds, cyc.dayLogs, meds.intakeHistory, today) : null),
@@ -150,6 +164,14 @@ function App({ lang, setLang, t }: { lang: Language; setLang: (l: Language) => v
     today: t.nav_today, cycle: t.nav_cycle, meds: t.nav_meds, visit: t.nav_visit, guide: t.nav_guide,
   };
 
+  // Android back: close the report, then settings, then return to Today, then leave the app.
+  useEffect(() => onBackButton(() => {
+    if (reportOpen) { setReportOpen(false); return true; }
+    if (settingsOpen) { setSettingsOpen(false); return true; }
+    if (tab !== 'today') { setTab('today'); return true; }
+    return false;
+  }), [reportOpen, settingsOpen, tab, setTab]);
+
   const goTab = (next: TabType) => {
     setSettingsOpen(false);
     setTab(next);
@@ -157,8 +179,8 @@ function App({ lang, setLang, t }: { lang: Language; setLang: (l: Language) => v
   };
 
   return (
-    <div className="min-h-dvh" style={{ paddingBottom: 'calc(88px + env(safe-area-inset-bottom))' }}>
-      <div className="mx-auto max-w-md px-4" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
+    <div className="min-h-dvh" style={{ paddingBottom: 'calc(88px + var(--safe-bottom))' }}>
+      <div className={`mx-auto max-w-md px-4 ${reportOpen ? 'print:hidden' : ''}`} style={{ paddingTop: 'max(12px, var(--safe-top))' }}>
         <div className="flex h-12 items-center justify-between">
           {settingsOpen ? (
             <button onClick={() => setSettingsOpen(false)} aria-label={t.close} className="press -ms-2 flex h-11 w-11 items-center justify-center rounded-full">
@@ -239,7 +261,7 @@ function App({ lang, setLang, t }: { lang: Language; setLang: (l: Language) => v
                 intakes={meds.intakeHistory}
                 doseTotals={meds.doseTotals}
                 onTake={onTake}
-                onDelete={meds.deleteIntake}
+                onDelete={onDeleteIntake}
                 onSetTime={meds.setIntakeTime}
                 onRelief={onRelief}
               />

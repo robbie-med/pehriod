@@ -26,6 +26,39 @@ npm run build   # static export to ./out
 
 Pushes to `main` deploy to GitHub Pages. See `CLAUDE.md` for architecture.
 
+## Android
+
+The Android app wraps the same static build with [Capacitor](https://capacitorjs.com). Inside the app, printing the report uses the Android print dialog, which can also save a PDF. Backups open the share sheet. A notification an hour after each dose asks whether it helped.
+
+```bash
+npm run android:sync                       # build the site and copy it into android/
+cd android && ./gradlew assembleRelease    # unsigned APK in app/build/outputs/apk/release/
+```
+
+Needs JDK 21 and the Android SDK (platform 36).
+
+### Publishing an APK on GitHub
+
+The **Android release** workflow builds a signed APK and attaches it to a GitHub Release named `v<version>`. Before the first run:
+
+1. Create a signing key once and keep it safe. Every later update must be signed with the same key.
+   ```bash
+   keytool -genkeypair -v -keystore pehriod-release.jks -alias pehriod -keyalg RSA -keysize 4096 -validity 10000
+   base64 -w0 pehriod-release.jks > pehriod-release.jks.b64
+   ```
+2. In the repository's **Settings → Secrets and variables → Actions**, add `ANDROID_KEYSTORE_BASE64` (the `.b64` file's contents), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`pehriod`) and `ANDROID_KEY_PASSWORD`.
+3. Run **Actions → Android release → Run workflow**, or push a tag matching `package.json`, e.g. `v3.0.0`.
+
+For each new version, bump `version` in `package.json` (versionCode is derived from it: 3.1.2 → 30102) and add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
+
+### F-Droid and other stores
+
+Store listing text, icon and screenshots are in `fastlane/metadata/android/`, the layout F-Droid and IzzyOnDroid read. The APK has no Google Play Services, no tracking, and no Google dependency-metadata block.
+
+- **Obtainium**: add the GitHub repository URL; it installs and updates from Releases directly.
+- **IzzyOnDroid**: request inclusion on its GitLab; it picks up the APK from GitHub Releases.
+- **F-Droid main repository**: submit a merge request with build metadata to `fdroiddata` on GitLab. F-Droid builds from source and signs with its own key, unless the build is reproducible.
+
 ## License
 
 ISC

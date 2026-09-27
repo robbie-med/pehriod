@@ -9,7 +9,11 @@ npm run dev       # Development server at localhost:3000
 npm run build     # Static export to ./out/ (GitHub Pages)
 npm run lint      # ESLint (flat config, eslint.config.mjs)
 npm test          # Vitest, run twice: TZ=Asia/Seoul and TZ=America/Los_Angeles
+npm run android:sync                     # build + copy web assets into android/
+cd android && ./gradlew assembleRelease  # APK (JDK 21, Android SDK 36)
 ```
+
+**Android** (`android/`, Capacitor 8): app id `org.robbiemed.pehriod`; versionCode/versionName come from `package.json` (3.1.2 → 30102). Release signing reads `PEHRIOD_KEYSTORE*` env vars; without them the APK is unsigned. `.github/workflows/android.yml` builds the signed APK and attaches it to a GitHub Release; it requires a changelog at `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`. Native bridges live in `src/lib/native.ts` (print plugin `PrintPlugin.java`, share-sheet backups, relief notifications, back button, system bar style). The service worker is skipped inside the app. Keep Google Play Services and the google-services plugin out; F-Droid rejects them.
 
 ## Architecture
 

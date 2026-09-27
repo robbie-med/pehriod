@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pehriod</string>
+    <string name="title_activity_main">Pehriod</string>
+    <string name="package_name">org.robbiemed.pehriod</string>
+    <string name="custom_url_scheme">org.robbiemed.pehriod</string>
+</resources>

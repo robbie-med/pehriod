@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { setSystemBars } from '../../lib/native';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 
@@ -46,6 +47,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const apply = (dark: boolean) => {
       h.classList.toggle('dark', dark);
       h.classList.toggle('light', mode === 'light');
+      setSystemBars(dark);
     };
     if (mode !== 'auto') {
       apply(mode === 'dark');

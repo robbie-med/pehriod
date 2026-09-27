@@ -138,7 +138,7 @@ export function Sheet({ open, onClose, children }: { open: boolean; onClose: () 
         role="dialog"
         aria-modal="true"
         className="rise w-full max-w-md rounded-t-[28px] bg-bg px-5 pt-3"
-        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+        style={{ paddingBottom: 'max(20px, var(--safe-bottom))' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-raise2" />
@@ -170,7 +170,7 @@ export function ToastProvider({ undoLabel, children }: { undoLabel: string; chil
       {toast && (
         <div
           className="no-print pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4"
-          style={{ bottom: 'calc(76px + env(safe-area-inset-bottom))' }}
+          style={{ bottom: 'calc(76px + var(--safe-bottom))' }}
         >
           <div key={toast.id} className="rise pointer-events-auto flex max-w-md items-center gap-4 rounded-full bg-t1 py-2 ps-5 pe-2 text-bg" role="status">
             <span className="text-[15px]">{toast.text}</span>

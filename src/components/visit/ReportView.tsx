@@ -8,6 +8,7 @@ import { MEDICATIONS } from '../../lib/medications';
 import { isoToDate } from '../../lib/dates';
 import { T, Language, fmt, languages, locale, tk } from '../../data/translations';
 import { cx } from '../ui/kit';
+import { printPage } from '../../lib/native';
 
 interface Props {
   t: T;
@@ -90,9 +91,9 @@ export function ReportView({ t, td, lang, doctorLang, report, evidence, answers,
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-bg" dir={languages[doctorLang].dir} lang={doctorLang}>
-      <div className="no-print sticky top-0 z-10 flex items-center justify-end gap-2 bg-bg px-4 py-3" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
-        <button onClick={() => window.print()} className="press flex h-11 items-center gap-2 rounded-full bg-accent px-5 font-semibold text-on-accent">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-bg print:static print:overflow-visible" dir={languages[doctorLang].dir} lang={doctorLang}>
+      <div className="no-print sticky top-0 z-10 flex items-center justify-end gap-2 bg-bg px-4 py-3" style={{ paddingTop: 'max(12px, var(--safe-top))' }}>
+        <button onClick={() => printPage(td.report_title)} className="press flex h-11 items-center gap-2 rounded-full bg-accent px-5 font-semibold text-on-accent">
           <Printer size={18} />{t.print}
         </button>
         <button onClick={onClose} aria-label={t.close} className="press flex h-11 w-11 items-center justify-center rounded-full bg-raise"><X size={20} /></button>

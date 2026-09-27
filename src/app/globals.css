@@ -4,6 +4,8 @@
 
 /* Tokens. --ah is the accent hue (0-359), set by ThemeProvider. */
 :root {
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --ah: 8;
   --bg: #f6f3ee;
   --raise: #ece7df;

@@ -1,0 +1,94 @@
+name: Android release
+
+# Builds a signed APK and attaches it to a GitHub Release (v<package.json version>).
+# Run it from the Actions tab, or push a tag like v3.0.0 that matches package.json.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Read version
+        id: v
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "code=$(node -p "const [a,b,c]=require('./package.json').version.split('.').map(Number); a*10000+b*100+c")" >> "$GITHUB_OUTPUT"
+
+      - name: Tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [ "$GITHUB_REF_NAME" != "v${{ steps.v.outputs.version }}" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ${{ steps.v.outputs.version }}"
+            exit 1
+          fi
+
+      - name: Changelog exists
+        run: test -s "fastlane/metadata/android/en-US/changelogs/${{ steps.v.outputs.code }}.txt" || { echo "::error::Add fastlane/metadata/android/en-US/changelogs/${{ steps.v.outputs.code }}.txt"; exit 1; }
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx cap sync android
+
+      - name: Decode signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Signing secrets are missing. See the Android section of README.md."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      - name: Build signed APK
+        working-directory: android
+        env:
+          PEHRIOD_KEYSTORE: ${{ runner.temp }}/release.jks
+          PEHRIOD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          PEHRIOD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          PEHRIOD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Verify signature
+        run: |
+          APK_IN=android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK_IN"
+          APK="pehriod-${{ steps.v.outputs.version }}.apk"
+          cp "$APK_IN" "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+          echo "APK=$APK" >> "$GITHUB_ENV"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.v.outputs.version }}
+          NOTES: fastlane/metadata/android/en-US/changelogs/${{ steps.v.outputs.code }}.txt
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
+          else
+            gh release create "$TAG" "$APK" "$APK.sha256" --title "Pehriod ${TAG#v}" --notes-file "$NOTES" --target "$GITHUB_SHA"
+          fi

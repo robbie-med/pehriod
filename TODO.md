@@ -1,8 +1,9 @@
 # Pehriod TODO
 
 ## Next
-- [ ] Android APK via Capacitor (webDir `out`); disable the service worker in the native build
-- [ ] Scheduled local notification for the 60-minute relief question (Capacitor Local Notifications)
+- [ ] Add Android signing secrets and run the first Android release
+- [ ] Submit to IzzyOnDroid and F-Droid
+- [ ] Test on a device: print to PDF, backup share sheet, relief notification, back button, safe areas
 - [ ] Health Connect read on Android: menstruation flow/period, cervical mucus, BBT, ovulation test, weight, resting heart rate, exercise
 - [ ] Apple Health `export.xml` import, streamed in a worker
 - [ ] Ovulation confirmation from basal temperature (three-over-six rule)
@@ -20,3 +21,4 @@
 - [x] Optional trackers with trends; legacy calendar events migrated
 - [x] New design: warm tokens, warm dark mode, Recursive typeface, flat rows, no emoji or sub-text
 - [x] Vitest suite, ESLint flat config
+- [x] Android app via Capacitor with release workflow and F-Droid metadata

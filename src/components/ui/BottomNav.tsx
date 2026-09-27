@@ -19,7 +19,7 @@ export function BottomNav({ active, onChange, labels }: {
   return (
     <nav
       className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      style={{ paddingBottom: 'var(--safe-bottom)' }}
     >
       <div className="mx-auto grid max-w-md grid-cols-5">
         {TABS.map(({ id, Icon }) => (
