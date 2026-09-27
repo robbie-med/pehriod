@@ -39,15 +39,20 @@ Needs JDK 21 and the Android SDK (platform 36).
 
 ### Publishing an APK on GitHub
 
-The **Android release** workflow builds a signed APK and attaches it to a GitHub Release named `v<version>`. Before the first run:
+The **Android release** workflow builds a signed APK and attaches it to a GitHub Release named `v<version>`. It needs two repository secrets (**Settings → Secrets and variables → Actions**):
 
-1. Create a signing key once and keep it safe. Every later update must be signed with the same key.
-   ```bash
-   keytool -genkeypair -v -keystore pehriod-release.jks -alias pehriod -keyalg RSA -keysize 4096 -validity 10000
-   base64 -w0 pehriod-release.jks > pehriod-release.jks.b64
-   ```
-2. In the repository's **Settings → Secrets and variables → Actions**, add `ANDROID_KEYSTORE_BASE64` (the `.b64` file's contents), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`pehriod`) and `ANDROID_KEY_PASSWORD`.
-3. Run **Actions → Android release → Run workflow**, or push a tag matching `package.json`, e.g. `v3.0.0`.
+- `ANDROID_KEYSTORE_BASE64`: the release keystore (PKCS12, alias `pehriod`), base64-encoded
+- `ANDROID_KEYSTORE_PASSWORD`: its password
+
+Then run **Actions → Android release → Run workflow**, or push a tag matching `package.json`, e.g. `v3.0.0`.
+
+Every release must be signed with the same key, or installed copies refuse to update. Keep an offline backup of the keystore and password. The workflow refuses to publish an APK signed by any other certificate.
+
+Release signing certificate (SHA-256), for verifying downloads with `apksigner verify --print-certs` or AppVerifier:
+
+```
+0E:AE:F0:E2:F0:69:E1:AC:2C:4F:FE:D2:DE:AA:87:23:FB:2A:09:3F:F7:19:E2:EE:56:74:8D:4B:24:2F:B1:12
+```
 
 For each new version, bump `version` in `package.json` (versionCode is derived from it: 3.1.2 → 30102) and add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 

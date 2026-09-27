@@ -1,7 +1,7 @@
 # Pehriod TODO
 
 ## Next
-- [ ] Add Android signing secrets and run the first Android release
+- [ ] Add the two Android signing secrets and run the first Android release
 - [ ] Submit to IzzyOnDroid and F-Droid
 - [ ] Test on a device: print to PDF, backup share sheet, relief notification, back button, safe areas
 - [ ] Health Connect read on Android: menstruation flow/period, cervical mucus, BBT, ovulation test, weight, resting heart rate, exercise

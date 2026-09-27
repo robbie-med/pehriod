@@ -55,8 +55,9 @@ jobs:
       - name: Decode signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
             echo "::error::Signing secrets are missing. See the Android section of README.md."
             exit 1
           fi
@@ -67,15 +68,18 @@ jobs:
         env:
           PEHRIOD_KEYSTORE: ${{ runner.temp }}/release.jks
           PEHRIOD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          PEHRIOD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          PEHRIOD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # PKCS12 keystore: the key shares the store password.
+          PEHRIOD_KEY_ALIAS: pehriod
+          PEHRIOD_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Verify signature
         run: |
           APK_IN=android/app/build/outputs/apk/release/app-release.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          "$BT/apksigner" verify --print-certs "$APK_IN"
+          "$BT/apksigner" verify --print-certs "$APK_IN" | tee certs.txt
+          # Every release must be signed by the same key, or installed apps refuse the update.
+          grep -qi "SHA-256 digest: 0eaef0e2f069e1ac2c4ffed2deaa8723fb2a093ff719e2ee56748d4b242fb112" certs.txt || { echo "::error::APK is not signed with the Pehriod release key"; exit 1; }
           APK="pehriod-${{ steps.v.outputs.version }}.apk"
           cp "$APK_IN" "$APK"
           sha256sum "$APK" > "$APK.sha256"
