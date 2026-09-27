@@ -7,6 +7,7 @@ export const MEDICATIONS: Medication[] = [
     color: 'orange',
     descriptionKey: 'med_ibuprofen_desc',
     minIntervalHours: 4,
+    tablets: 2,
     composition: [{ ingredient: 'ibuprofen', amountMg: 400 }],
   },
   {

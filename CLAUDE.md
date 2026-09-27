@@ -7,50 +7,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev       # Development server at localhost:3000
 npm run build     # Static export to ./out/ (GitHub Pages)
-npm run lint      # ESLint
+npm run lint      # ESLint (flat config, eslint.config.mjs)
+npm test          # Vitest, run twice: TZ=Asia/Seoul and TZ=America/Los_Angeles
 ```
-
-No test suite configured.
 
 ## Architecture
 
-**Pehriod** is a fully client-side PWA for period pain management. Zero backend — all data in localStorage. Deployed to GitHub Pages via GitHub Actions on push to `main`. Next.js config uses `output: 'export'` and `basePath: '/pehriod'`.
+**Pehriod** is a fully client-side PWA for period tracking and period pain management. Zero backend: all data in localStorage. Deployed to GitHub Pages via GitHub Actions on push to `main`. `next.config.js` uses `output: 'export'`. The page renders nothing until mounted (`useSyncExternalStore` gate in `src/app/page.tsx`), so localStorage reads never cause hydration mismatches.
 
-**Languages:** English + Korean only (`en` | `ko`). All UI strings live in `src/data/translations.ts` as a typed object — no i18n library. Lookup: `t[key]`.
+What makes it different: it **measures** instead of guessing.
+1. **Blood loss**: each pad/tampon change is one tap and scored with the PBAC chart (Higham 1990); cups log mL. A period ≥ 100 points or ≥ 80 mL is heavy menstrual bleeding.
+2. **Pain relief**: an hour after each dose the app asks for relief on the 5-point scale (none … complete). Per-medicine response and NSAID non-response feed the report.
+3. **Doctor report**: a plain-language pre-visit questionnaire plus logged data, rendered bilingually (patient language + doctor language). Logged data sits next to each answer and is marked ≠ where they disagree; it never replaces an answer.
 
-### Data Model (`src/lib/types.ts`)
+**Languages:** `en`, `ko`, `my`, `ar` (RTL). All strings live in `src/data/translations.ts` (`T = typeof en`; every language must have every key). Use `fmt(t.key, { n })` for `{placeholders}` and `tk(t, key)` for keys built at runtime. `translations.ts` is generated from per-language string tables; keep placeholders identical across languages.
 
-- **`CycleRecord`** — period start/end dates, per-day flow levels (`spotting/light/medium/heavy`)
-- **`DayLog`** — per-date pain level, symptoms, mood, notes
-- **`IntakeRecord`** — medication dose with timestamp; persists indefinitely (no auto-purge)
-- **`DoseTotals`** — 24hr rolling sums per active ingredient (incl. naproxen)
+**Dates:** always local `YYYY-MM-DD` via `src/lib/dates.ts`. Never use `toISOString()` for a calendar date: it is UTC and shifts the day east of Greenwich.
 
-### Storage keys (`src/lib/storage.ts`)
-`pehriod_intake_history`, `pehriod_current_pain`, `pehriod_language`, `pehriod_cycles`, `pehriod_day_logs`
+### Data model (`src/lib/types.ts`)
 
-### Tabs & Components
+- `CycleRecord`: period start/end, optional manual `flowByDay`
+- `BleedEntry`: one product change (`pad`/`tampon` with `size` 1–5 and `fill` 1–3, `cup` with `ml`, `liner`, `clot`, `flood`)
+- `DayLog`: pain 0–10, symptoms, mood, notes, `values` for optional trackers (`missed` = missed work/school)
+- `IntakeRecord`: dose with timestamp, `painLevel`, `relief` (undefined = not asked, null = skipped)
+
+### Storage (`src/lib/storage.ts`)
+
+Keys: `pehriod_cycles`, `pehriod_bleeds`, `pehriod_day_logs`, `pehriod_intake_history`, `pehriod_prefs`, `pehriod_visit`, `pehriod_language`, plus theme/backup keys. `migrate()` runs once on load (schema 2 moved legacy calendar events into `DayLog.values`). Clear-all removes every `pehriod_*` key.
+
+### Screens
 
 | Tab | Component | Purpose |
 |-----|-----------|---------|
-| Today | `components/today/TodayDashboard.tsx` | Cycle status, pain log, symptom/mood journal, today's meds |
-| Cycle | `components/cycle/CycleTracker.tsx` | Period start/end, month calendar, flow logging, cycle stats + predictions |
-| Meds | `components/meds/MedLogger.tsx` | Log doses, real-time safety check, 24hr totals, full history |
-| Guide | `components/guide/OTCGuide.tsx` | Comprehensive OTC drug reference + management strategy |
-| Settings | `components/settings/SettingsPanel.tsx` | Language switch, data export/clear |
+| Today | `components/today/TodayScreen.tsx` | Status, relief questions, one-tap bleed logger, pain, symptoms, trackers |
+| Cycle | `components/cycle/CycleScreen.tsx` | Calendar with measured flow, stats, pain by day, tracker trends, period history |
+| Meds | `components/meds/MedsScreen.tsx` | One-tap dose logging with undo, safety blocks, 24 h totals, history |
+| Visit | `components/visit/VisitScreen.tsx`, `ReportView.tsx` | Questionnaire and printable bilingual report |
+| Guide | `components/guide/OTCGuide.tsx` | Long-form reference; the only place for explanatory text |
+| Settings | `components/settings/SettingsScreen.tsx` | Gear icon; language, theme, units, trackers, backup |
 
-### Business Logic (`src/lib/`)
+### Logic (`src/lib/`)
 
-- **`safetyChecker.ts`** — validates proposed dose: daily limits, drug conflicts (Pamprin Max ↔ Midol), per-medication min interval (ibuprofen 4hr, naproxen 8hr)
-- **`cycleCalculator.ts`** — cycle stats, next-period prediction, period date sets for calendar
-- **`doseCalculator.ts`** — 24hr rolling sums
-- **`doseLimits.ts`** — hard limits: acetaminophen 3000mg, ibuprofen 1200mg, naproxen 660mg
+- `pbac.ts`: PBAC scores, FDA tampon absorbency tiers, day flow level
+- `period.ts`: auto-start/extend a period on a bleed, end suggestion
+- `relief.ts`: pending relief questions, per-med stats, NSAID non-response, early vs onset comparison
+- `report.ts`: cycle table and FIGO 2018 flags; `evidence.ts`: logged data per questionnaire answer, with mismatch rules
+- `visit.ts`: questionnaire definition; `trackers.ts`: optional trackers (metric storage, unit conversion)
+- `safetyChecker.ts`: daily limits (reaching a limit is allowed, exceeding it is blocked), conflicts, min intervals
+- `doseLimits.ts`: acetaminophen 3000 mg, ibuprofen 1200 mg, naproxen 660 mg
 
-### State hooks (`src/hooks/`)
+### Design rules
 
-- **`useMedicationData`** — intakeHistory + doseTotals; no time-based purge (data kept forever)
-- **`useCycleData`** — cycles + dayLogs; exposes `startPeriod`, `endPeriod`, `logFlow`, `saveDayLog`
-- **`useDoseTotals`** — memoized 24hr ingredient sums
+Tokens in `src/app/globals.css` (`bg`, `raise`, `line`, `t1–t3`, `accent` from hue `--ah`). Dark mode is warm near-black, never blue. Font: Recursive (casual axis) with Gowun Dodum, Padauk, Vazirmatn fallbacks, self-hosted via fontsource. Flat rows and hairlines, no cards or glass. No explanatory sub-text, parentheticals or emoji in UI strings; explanations go in the Guide.
 
 ### Medications
 
-6 medications: `ibuprofen`, `naproxen`, `acetaminophen`, `pamprin-multi`, `pamprin-max-energy`, `midol-complete`. Adding a medication requires updating `medications.ts`, `types.ts` (MedicationId), `doseLimits.ts`, and `translations.ts`.
+6 medications: `ibuprofen`, `naproxen`, `acetaminophen`, `pamprin-multi`, `pamprin-max-energy`, `midol-complete`. Adding one requires `medications.ts`, `types.ts` (`MedicationId`), `doseLimits.ts` if a new ingredient, and translations.

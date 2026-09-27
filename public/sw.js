@@ -1,5 +1,5 @@
 // Pehriod Service Worker — offline-first PWA
-const CACHE = 'pehriod-v4';
+const CACHE = 'pehriod-v5';
 const BASE = '';
 
 // App shell — always cached on install

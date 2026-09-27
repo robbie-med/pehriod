@@ -1,10 +1,4 @@
 // ============================================
-// LANGUAGE
-// ============================================
-
-export type Language = 'en' | 'ko';
-
-// ============================================
 // MEDICATIONS
 // ============================================
 
@@ -38,17 +32,25 @@ export interface Medication {
   descriptionKey: string;
   conflictsWith?: MedicationId[];
   minIntervalHours: number;
+  /** Tablets per logged dose, when more than one. */
+  tablets?: number;
 }
 
 // ============================================
 // INTAKE / DOSE TRACKING
 // ============================================
 
+/** Standard 5-point categorical pain relief scale: none, a little, some, a lot, complete. */
+export type Relief = 0 | 1 | 2 | 3 | 4;
+
 export interface IntakeRecord {
   id: string;
   medicationId: MedicationId;
   timestamp: number;
+  /** Pain 0-10 when the dose was taken. */
   painLevel?: number;
+  /** undefined = not asked yet, null = skipped. */
+  relief?: Relief | null;
 }
 
 export interface DoseTotals {
@@ -93,10 +95,33 @@ export interface SafetyViolation {
 }
 
 // ============================================
-// CYCLE TRACKING
+// BLEEDING
 // ============================================
 
 export type FlowLevel = 'spotting' | 'light' | 'medium' | 'heavy';
+
+export type Product = 'pad' | 'tampon' | 'cup' | 'liner';
+export type BleedKind = Product | 'clot' | 'flood';
+
+/** How soaked a pad or tampon was at change: lightly stained, moderately soiled, saturated. */
+export type Fill = 1 | 2 | 3;
+
+export interface BleedEntry {
+  id: string;
+  ts: number;
+  kind: BleedKind;
+  /** Absorbency tier 1-5 for pads and tampons. */
+  size?: number;
+  fill?: Fill;
+  /** Cup contents in mL. */
+  ml?: number;
+  /** Clot size: false = small, true = large. */
+  big?: boolean;
+}
+
+// ============================================
+// CYCLE TRACKING
+// ============================================
 
 export type SymptomType =
   | 'cramps'
@@ -113,23 +138,28 @@ export type MoodType = 'great' | 'good' | 'neutral' | 'low' | 'irritable' | 'anx
 
 export interface CycleRecord {
   id: string;
-  startDate: string;   // ISO date "2024-01-15"
-  endDate?: string;    // ISO date, undefined = ongoing
+  startDate: string;   // local ISO date
+  endDate?: string;    // undefined = ongoing
+  /** Manually chosen flow per day. Days with bleed entries use the measured level instead. */
   flowByDay: Record<string, FlowLevel>;
   notes?: string;
 }
 
+export type TrackerValue = number | string | boolean;
+
 export interface DayLog {
   id: string;
-  date: string;          // ISO date
+  date: string;
   painLevel?: number;    // 0-10
   symptoms: SymptomType[];
   mood?: MoodType;
   notes?: string;
+  values?: Record<string, TrackerValue>;
 }
 
 export type CycleRegularity = 'very_regular' | 'regular' | 'somewhat_irregular' | 'irregular' | 'unknown';
 
+/** Legacy (schema 1). Migrated into DayLog.values. */
 export type CalendarEventType = 'stress' | 'travel' | 'timezone' | 'illness' | 'exercise' | 'other';
 
 export interface CalendarEvent {
@@ -140,10 +170,10 @@ export interface CalendarEvent {
 }
 
 export interface PredictedCycle {
-  periodStart: string;     // ISO date
-  ovulationDay: string;    // ISO date
-  fertileStart: string;    // ISO date
-  fertileEnd: string;      // ISO date
+  periodStart: string;
+  ovulationDay: string;
+  fertileStart: string;
+  fertileEnd: string;
 }
 
 export interface CycleStats {
@@ -152,13 +182,13 @@ export interface CycleStats {
   averagePeriodLength: number | null;
   cycleVariation: number | null;        // std dev of cycle lengths in days
   regularity: CycleRegularity;
-  nextPredictedStart: string | null;    // ISO date
-  fertileWindowStart: string | null;   // ISO date
-  fertileWindowEnd: string | null;     // ISO date
-  ovulationDay: string | null;          // ISO date
+  nextPredictedStart: string | null;
+  fertileWindowStart: string | null;
+  fertileWindowEnd: string | null;
+  ovulationDay: string | null;
   isFertileNow: boolean;
   currentCycleDay: number | null;
   isOnPeriod: boolean;
   currentPeriodDay: number | null;
-  upcomingCycles: PredictedCycle[];    // up to 1 year of future predictions
+  upcomingCycles: PredictedCycle[];     // up to 1 year of future predictions
 }

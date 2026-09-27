@@ -24,7 +24,8 @@ export function checkSafety(
     if (!limit) continue;
     const newTotal = (currentTotals[ingredient.ingredient] ?? 0) + ingredient.amountMg;
 
-    if (newTotal >= limit.maxDailyMg && limit.isHardLimit) {
+    // Reaching the limit exactly is allowed (3 × 400 mg ibuprofen = 1200 mg); only going over is blocked.
+    if (newTotal > limit.maxDailyMg && limit.isHardLimit) {
       violations.push({
         type: 'daily-limit-exceeded',
         severity: 'error',

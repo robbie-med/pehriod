@@ -1,40 +1,39 @@
-import { Icons } from './Icons';
+import { BookOpen, CalendarDays, ClipboardList, Droplet, Pill } from 'lucide-react';
+import { cx } from './kit';
 
-export type TabType = 'today' | 'cycle' | 'meds' | 'guide' | 'settings';
+export type TabType = 'today' | 'cycle' | 'meds' | 'visit' | 'guide';
 
-interface BottomNavProps {
-  activeTab: TabType;
-  onTabChange: (tab: TabType) => void;
-  labels: Record<TabType, string>;
-}
-
-const TABS: { id: TabType; icon: keyof typeof Icons }[] = [
-  { id: 'today', icon: 'Today' },
-  { id: 'cycle', icon: 'Cycle' },
-  { id: 'meds', icon: 'Pill' },
-  { id: 'guide', icon: 'Book' },
-  { id: 'settings', icon: 'Settings' },
+const TABS: { id: TabType; Icon: typeof Droplet }[] = [
+  { id: 'today', Icon: Droplet },
+  { id: 'cycle', Icon: CalendarDays },
+  { id: 'meds', Icon: Pill },
+  { id: 'visit', Icon: ClipboardList },
+  { id: 'guide', Icon: BookOpen },
 ];
 
-export function BottomNav({ activeTab, onTabChange, labels }: BottomNavProps) {
+export function BottomNav({ active, onChange, labels }: {
+  active: TabType | null;
+  onChange: (tab: TabType) => void;
+  labels: Record<TabType, string>;
+}) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center text-xs font-medium text-gray-500" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
-      {TABS.map(({ id, icon }) => {
-        const Icon = Icons[icon];
-        const active = activeTab === id;
-        return (
+    <nav
+      className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="mx-auto grid max-w-md grid-cols-5">
+        {TABS.map(({ id, Icon }) => (
           <button
             key={id}
-            onClick={() => onTabChange(id)}
-            className={`flex flex-col items-center gap-0.5 py-2 px-3 transition-colors min-w-0 ${
-              active ? 'text-pink-600' : 'hover:text-gray-700'
-            }`}
+            onClick={() => onChange(id)}
+            aria-current={active === id ? 'page' : undefined}
+            className={cx('press flex h-16 flex-col items-center justify-center gap-1 text-[12px]', active === id ? 'text-accent font-semibold' : 'text-t3')}
           >
-            <Icon />
-            <span className="truncate">{labels[id]}</span>
+            <Icon size={22} strokeWidth={active === id ? 2.4 : 1.8} />
+            <span className="max-w-full truncate px-1">{labels[id]}</span>
           </button>
-        );
-      })}
+        ))}
+      </div>
     </nav>
   );
 }

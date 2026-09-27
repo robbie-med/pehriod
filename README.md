@@ -1,169 +1,31 @@
-# Pehriod - Period Pain Manager
+# Pehriod
 
-A smart, multilingual medication tracker for period pain management with built-in safety validation.
+Period tracking that measures. Offline, private, in English, 한국어, မြန်မာ and العربية.
 
-🌐 **Live App**: https://robbie-med.github.io/pehriod/
+**Live:** https://pehriod.robbiemed.org
 
-## Features
+## What it does
 
-### 🛡️ Medication Safety Engine
-- **24-hour dose tracking** - Rolling window calculations for all active ingredients
-- **Safety limits enforced**:
-  - Acetaminophen: Max 3000mg/day
-  - Ibuprofen: Max 1200mg/day
-  - Aspirin: Max 4000mg/day
-  - Caffeine: Max 400mg/day (warning)
-- **Conflict prevention** - Blocks mixing Pamprin Max and Midol in same 24-hour period
-- **Minimum dose spacing** - 4-hour gap required between same medication
+- **One-tap bleeding log.** Pick pad, tampon, cup or liner once; after that each change is a single tap on light, half or soaked. Absorbency is remembered, shown as colored droplets (tampons use the FDA terms Light, Regular, Super, Super Plus, Ultra). Every change is scored with the Pictorial Blood loss Assessment Chart (Higham 1990). A period of 100 points or more, or 80 mL in a cup, is heavy menstrual bleeding.
+- **Did it help?** An hour after each painkiller, one tap rates relief from none to complete. Over a few periods you see which medicine works for you, and poor NSAID response is flagged for your doctor.
+- **Safe dosing.** 24-hour limits summed by active ingredient across combination products, minimum intervals, and conflicting-product checks.
+- **Doctor visit.** A plain-language questionnaire covering bleeding, pain, anemia and bleeding-disorder screening, pregnancy, contraception and estrogen safety. The report prints in the patient's language and the doctor's, with logged data beside each answer and disagreements marked.
+- **Optional trackers.** Weight, exercise minutes, resting pulse, stress, travel, sickness, basal temperature, cervical mucus and ovulation tests, with 90-day trends.
 
-### 📅 Smart Medication Schedule
-Fixed 6-dose schedule:
-- **01:00** - Pamprin Multi-Symptom
-- **05:00** - Ibuprofen 200mg
-- **09:00** - Pamprin Max Pain + Energy OR Midol (choose one)
-- **13:00** - Ibuprofen 200mg
-- **17:00** - Acetaminophen 500mg
-- **21:00** - Ibuprofen 200mg
-
-### 📊 Real-time Tracking
-- **Pain level slider** (0-10 scale)
-- **24-hour dose summary** with visual progress bars
-- **Intake history** (past 48 hours)
-- **Color-coded alerts** (yellow warnings, red errors)
-
-### 🌍 Multilingual Support
-Available in 9 languages:
-- English
-- 한국어 (Korean)
-- မြန်မာစာ (Burmese)
-- Hakha Chin
-- ไทย (Thai)
-- বাংলা (Bengali)
-- فارسی (Farsi)
-- العربية (Arabic)
-- 中文 (Chinese)
-
-### 📱 Progressive Web App (PWA)
-- **Installable** on mobile and desktop
-- **Works offline** (localStorage persistence)
-- **No backend required** - all data stays on your device
-
-## Tech Stack
-
-- **Next.js 16** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS 4** - Utility-first styling
-- **LocalStorage** - Client-side data persistence
-- **GitHub Pages** - Static site hosting
-
-## Architecture
-
-```
-src/
-├── lib/                      # Business logic
-│   ├── types.ts              # TypeScript interfaces
-│   ├── medications.ts        # Medication database
-│   ├── doseLimits.ts         # Safety limits
-│   ├── schedule.ts           # Fixed schedule
-│   ├── doseCalculator.ts     # 24hr rolling calculations
-│   ├── safetyChecker.ts      # Validation engine
-│   ├── recommendationEngine.ts
-│   └── storage.ts
-│
-├── hooks/                    # State management
-│   ├── useLocalStorage.ts
-│   ├── useDoseTotals.ts
-│   ├── useMedicationData.ts
-│   └── useRecommendation.ts
-│
-├── components/               # UI components
-│   ├── ui/                   # Header, Nav, Icons
-│   ├── tracker/              # Timeline, Modals, Alerts
-│   ├── history/              # Intake history
-│   ├── medications/          # Med info cards
-│   ├── education/            # Education content
-│   └── settings/             # Language selector
-│
-└── app/
-    ├── page.tsx              # Main app
-    ├── layout.tsx            # Root layout
-    └── globals.css           # Global styles
-```
+All data stays in the browser's localStorage. Export a JSON backup from Settings.
 
 ## Development
 
-### Prerequisites
-- Node.js 20+
-- npm or yarn
-
-### Install Dependencies
 ```bash
 npm install
+npm run dev     # http://localhost:3000
+npm test        # runs in Asia/Seoul and America/Los_Angeles time zones
+npm run lint
+npm run build   # static export to ./out
 ```
 
-### Run Development Server
-```bash
-npm run dev
-```
-
-Open http://localhost:3000
-
-### Build for Production
-```bash
-npm run build
-```
-
-Output in `./out/` directory (static export)
-
-## Deployment
-
-The app automatically deploys to GitHub Pages via GitHub Actions when you push to `main`.
-
-### Manual Setup (if needed)
-1. Go to repository Settings → Pages
-2. Source: GitHub Actions
-3. Push to main branch triggers deployment
-
-## How It Works
-
-### Medication Tracking
-1. User selects a scheduled medication
-2. Safety checker validates:
-   - Daily limits not exceeded
-   - No conflicting medications in last 24hrs
-   - Minimum 4hr gap since last same medication
-3. If safe, intake is logged with timestamp and pain level
-4. 24hr dose totals automatically recalculate
-
-### Safety Validation
-```typescript
-// Example: Taking Pamprin Multi-Symptom (500mg acetaminophen)
-Current 24hr total: 2600mg acetaminophen
-After this dose: 3100mg
-Limit: 3000mg
-Result: ❌ BLOCKED - "Daily limit exceeded"
-```
-
-### Data Persistence
-- All data stored in browser localStorage
-- Automatic 7-day cleanup of old history
-- No server, no database, fully offline
-
-## Contributing
-
-We welcome contributions! Areas to expand:
-- Additional language translations
-- Education content (how medications work)
-- Custom medication schedules
-- Symptom tracking beyond pain
-- Period cycle integration
+Pushes to `main` deploy to GitHub Pages. See `CLAUDE.md` for architecture.
 
 ## License
 
 ISC
-
-## Acknowledgments
-
-Built with ❤️ to help people manage period pain safely and effectively.
-
-Co-developed with Claude Opus 4.5

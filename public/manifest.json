@@ -1,23 +1,54 @@
 {
   "id": "/",
-  "name": "Pehriod – Period Pain Manager",
+  "name": "Pehriod",
   "short_name": "Pehriod",
-  "description": "Cycle tracker, OTC drug guide, and medication safety log. Works fully offline.",
+  "description": "Period tracking that measures blood loss and pain relief, with a report for your doctor. Offline and private.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#0b1120",
-  "theme_color": "#ec4899",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#f6f3ee",
+  "theme_color": "#f6f3ee",
   "orientation": "portrait-primary",
-  "categories": ["health", "medical", "lifestyle"],
+  "categories": [
+    "health",
+    "medical",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Log Medication", "url": "/", "description": "Quickly log a dose" }
+    {
+      "name": "Log bleeding",
+      "url": "/",
+      "description": "Open Today"
+    }
   ]
 }

@@ -1,32 +1,24 @@
 import { CycleRecord, CycleStats, PredictedCycle } from './types';
+import { addDays, daysBetween, datesInRange, todayISO } from './dates';
 
-export function isoToDate(iso: string): Date {
-  return new Date(iso + 'T00:00:00');
+/** Luteal phase assumed 14 days; fertile window = 5 days before ovulation through 1 day after. */
+const LUTEAL_DAYS = 14;
+
+function fertileWindow(nextPeriodStart: string) {
+  const ovulationDay = addDays(nextPeriodStart, -LUTEAL_DAYS);
+  return {
+    ovulationDay,
+    fertileStart: addDays(ovulationDay, -5),
+    fertileEnd: addDays(ovulationDay, 1),
+  };
 }
 
-function daysBetween(a: string, b: string): number {
-  return Math.round(
-    (isoToDate(b).getTime() - isoToDate(a).getTime()) / (1000 * 60 * 60 * 24)
-  );
-}
-
-export function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
-export function addDays(iso: string, n: number): string {
-  const d = isoToDate(iso);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split('T')[0];
-}
-
-function sortedCycles(cycles: CycleRecord[]): CycleRecord[] {
+export function sortCycles(cycles: CycleRecord[]): CycleRecord[] {
   return [...cycles].sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
 
-export function getCycleStats(cycles: CycleRecord[]): CycleStats {
-  const sorted = sortedCycles(cycles);
-  const today = todayISO();
+export function getCycleStats(cycles: CycleRecord[], today: string = todayISO()): CycleStats {
+  const sorted = sortCycles(cycles);
 
   const completed = sorted.filter((c) => c.endDate);
   const ongoingCycle = sorted.find((c) => !c.endDate);
@@ -45,14 +37,12 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
   const avgCycle = avg(cycleLengths);
   const avgPeriod = avg(periodLengths);
 
-  // Cycle length variation (standard deviation)
   let cycleVariation: number | null = null;
   if (cycleLengths.length >= 2 && avgCycle) {
     const variance = cycleLengths.reduce((sum, l) => sum + Math.pow(l - avgCycle, 2), 0) / cycleLengths.length;
     cycleVariation = Math.round(Math.sqrt(variance) * 10) / 10;
   }
 
-  // Regularity classification
   let regularity: CycleStats['regularity'] = 'unknown';
   if (cycleVariation !== null) {
     if (cycleVariation <= 2) regularity = 'very_regular';
@@ -61,7 +51,6 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     else regularity = 'irregular';
   }
 
-  // Next predicted start
   let nextPredicted: string | null = null;
   if (avgCycle && sorted.length > 0) {
     const lastStart = sorted[sorted.length - 1].startDate;
@@ -71,58 +60,38 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
     }
   }
 
-  // Fertile window: ovulation ≈ 14 days before next period (luteal phase = 14 days)
-  // Fertile window = ovulation day ± 3 days (5-day window)
   let fertileWindowStart: string | null = null;
   let fertileWindowEnd: string | null = null;
   let ovulationDay: string | null = null;
-
-  if (nextPredicted && avgCycle) {
-    // Ovulation day = next predicted period - 14 days
-    // Fertile window: sperm viable 5 days before ovulation, egg viable ~24h after
-    ovulationDay = addDays(nextPredicted, -14);
-    fertileWindowStart = addDays(ovulationDay, -5);
-    fertileWindowEnd = addDays(ovulationDay, 1);
+  if (nextPredicted) {
+    const w = fertileWindow(nextPredicted);
+    ovulationDay = w.ovulationDay;
+    fertileWindowStart = w.fertileStart;
+    fertileWindowEnd = w.fertileEnd;
   }
 
-  // Is currently in fertile window?
   const isFertileNow =
     fertileWindowStart !== null &&
     fertileWindowEnd !== null &&
     today >= fertileWindowStart &&
     today <= fertileWindowEnd;
 
-  // Generate up to 1 year of upcoming cycle predictions
   const upcomingCycles: PredictedCycle[] = [];
   if (nextPredicted && avgCycle) {
     const oneYearOut = addDays(today, 365);
-    let cursor = nextPredicted;
-    while (cursor <= oneYearOut) {
-      const ov = addDays(cursor, -14);
-      upcomingCycles.push({
-        periodStart: cursor,
-        ovulationDay: ov,
-        fertileStart: addDays(ov, -3),
-        fertileEnd: addDays(ov, 2),
-      });
-      cursor = addDays(cursor, avgCycle);
+    for (let cursor = nextPredicted; cursor <= oneYearOut; cursor = addDays(cursor, avgCycle)) {
+      upcomingCycles.push({ periodStart: cursor, ...fertileWindow(cursor) });
     }
   }
 
-  // Current cycle day (days since last cycle start)
   let currentCycleDay: number | null = null;
   if (sorted.length > 0) {
     const lastStart = sorted[sorted.length - 1].startDate;
-    if (lastStart <= today) {
-      currentCycleDay = daysBetween(lastStart, today) + 1;
-    }
+    if (lastStart <= today) currentCycleDay = daysBetween(lastStart, today) + 1;
   }
 
   const isOnPeriod = !!ongoingCycle && ongoingCycle.startDate <= today;
-  let currentPeriodDay: number | null = null;
-  if (isOnPeriod && ongoingCycle) {
-    currentPeriodDay = daysBetween(ongoingCycle.startDate, today) + 1;
-  }
+  const currentPeriodDay = isOnPeriod && ongoingCycle ? daysBetween(ongoingCycle.startDate, today) + 1 : null;
 
   return {
     totalCycles: sorted.length,
@@ -142,26 +111,10 @@ export function getCycleStats(cycles: CycleRecord[]): CycleStats {
   };
 }
 
-export function getDatesInRange(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const d = isoToDate(start);
-  const endDate = isoToDate(end);
-  while (d <= endDate) {
-    dates.push(d.toISOString().split('T')[0]);
-    d.setDate(d.getDate() + 1);
-  }
-  return dates;
-}
-
-export function getPeriodDatesSet(cycles: CycleRecord[]): Set<string> {
+export function getPeriodDatesSet(cycles: CycleRecord[], today: string = todayISO()): Set<string> {
   const set = new Set<string>();
   for (const cycle of cycles) {
-    const end = cycle.endDate ?? todayISO();
-    getDatesInRange(cycle.startDate, end).forEach((d) => set.add(d));
+    datesInRange(cycle.startDate, cycle.endDate ?? today).forEach((d) => set.add(d));
   }
   return set;
-}
-
-export function daysUntil(isoDate: string): number {
-  return daysBetween(todayISO(), isoDate);
 }

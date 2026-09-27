@@ -1,135 +1,79 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { CycleRecord, DayLog, FlowLevel, CalendarEvent } from '../lib/types';
+import { CycleRecord, DayLog, FlowLevel } from '../lib/types';
 import { STORAGE_KEYS } from '../lib/storage';
-import { getCycleStats, todayISO, getDatesInRange } from '../lib/cycleCalculator';
+import { getCycleStats } from '../lib/cycleCalculator';
+import { datesInRange, todayISO } from '../lib/dates';
+import { uid } from '../lib/period';
+
+export type DayPatch = Partial<Omit<DayLog, 'id' | 'date'>>;
 
 export function useCycleData() {
-  const [cycles, setCycles] = useLocalStorage<CycleRecord[]>(
-    STORAGE_KEYS.CYCLE_RECORDS,
-    []
-  );
-
-  const [dayLogs, setDayLogs] = useLocalStorage<DayLog[]>(
-    STORAGE_KEYS.DAY_LOGS,
-    []
-  );
-
-  const [calendarEvents, setCalendarEvents] = useLocalStorage<CalendarEvent[]>(
-    STORAGE_KEYS.CALENDAR_EVENTS,
-    []
-  );
+  const [cycles, setCycles] = useLocalStorage<CycleRecord[]>(STORAGE_KEYS.CYCLE_RECORDS, []);
+  const [dayLogs, setDayLogs] = useLocalStorage<DayLog[]>(STORAGE_KEYS.DAY_LOGS, []);
 
   const stats = useMemo(() => getCycleStats(cycles), [cycles]);
 
-  const startPeriod = useCallback(() => {
-    const today = todayISO();
-    if (cycles.some((c) => !c.endDate)) return;
-    const newCycle: CycleRecord = {
-      id: crypto.randomUUID(),
-      startDate: today,
-      flowByDay: { [today]: 'medium' },
-    };
-    setCycles((prev) => [...prev, newCycle]);
-  }, [cycles, setCycles]);
-
-  const endPeriod = useCallback(() => {
-    const today = todayISO();
+  const startPeriod = useCallback((date: string = todayISO()) => {
     setCycles((prev) =>
-      prev.map((c) => (!c.endDate ? { ...c, endDate: today } : c))
+      prev.some((c) => !c.endDate) ? prev : [...prev, { id: uid(), startDate: date, flowByDay: {} }]
     );
   }, [setCycles]);
 
-  const addPastCycle = useCallback(
-    (startDate: string, endDate: string, defaultFlow: FlowLevel) => {
-      const flowByDay: Record<string, FlowLevel> = {};
-      getDatesInRange(startDate, endDate).forEach((d) => {
-        flowByDay[d] = defaultFlow;
-      });
-      const newCycle: CycleRecord = {
-        id: crypto.randomUUID(),
-        startDate,
-        endDate,
-        flowByDay,
-      };
-      setCycles((prev) => [...prev, newCycle]);
-    },
-    [setCycles]
-  );
+  const endPeriod = useCallback((date: string) => {
+    setCycles((prev) => prev.map((c) => (!c.endDate ? { ...c, endDate: date < c.startDate ? c.startDate : date } : c)));
+  }, [setCycles]);
 
-  const logFlow = useCallback(
-    (date: string, flow: FlowLevel) => {
-      setCycles((prev) => {
-        const idx = prev.findIndex((c) => {
-          const end = c.endDate ?? todayISO();
-          return c.startDate <= date && date <= end;
-        });
-        if (idx === -1) return prev;
-        const updated = [...prev];
-        updated[idx] = {
-          ...updated[idx],
-          flowByDay: { ...updated[idx].flowByDay, [date]: flow },
-        };
-        return updated;
-      });
-    },
-    [setCycles]
-  );
+  const addPastCycle = useCallback((startDate: string, endDate: string, flow: FlowLevel) => {
+    const flowByDay: Record<string, FlowLevel> = {};
+    datesInRange(startDate, endDate).forEach((d) => { flowByDay[d] = flow; });
+    setCycles((prev) => [...prev, { id: uid(), startDate, endDate, flowByDay }]);
+  }, [setCycles]);
 
-  const deleteCycle = useCallback(
-    (id: string) => {
-      setCycles((prev) => prev.filter((c) => c.id !== id));
-    },
-    [setCycles]
-  );
+  const setFlow = useCallback((date: string, flow: FlowLevel | null) => {
+    const today = todayISO();
+    setCycles((prev) => {
+      const idx = prev.findIndex((c) => c.startDate <= date && date <= (c.endDate ?? today));
+      if (idx === -1) return prev;
+      const flowByDay = { ...prev[idx].flowByDay };
+      if (flow) flowByDay[date] = flow;
+      else delete flowByDay[date];
+      const next = [...prev];
+      next[idx] = { ...prev[idx], flowByDay };
+      return next;
+    });
+  }, [setCycles]);
 
-  const saveDayLog = useCallback(
-    (log: Omit<DayLog, 'id'>) => {
-      setDayLogs((prev) => {
-        const filtered = prev.filter((l) => l.date !== log.date);
-        return [...filtered, { ...log, id: crypto.randomUUID() }];
-      });
-    },
-    [setDayLogs]
-  );
+  const deleteCycle = useCallback((id: string) => {
+    setCycles((prev) => prev.filter((c) => c.id !== id));
+  }, [setCycles]);
 
-  const getDayLog = useCallback(
-    (date: string): DayLog | undefined => {
-      return dayLogs.find((l) => l.date === date);
-    },
-    [dayLogs]
-  );
+  const updateDay = useCallback((date: string, patch: DayPatch) => {
+    setDayLogs((prev) => {
+      const existing = prev.find((l) => l.date === date);
+      const base: DayLog = existing ?? { id: uid(), date, symptoms: [] };
+      const values = patch.values ? { ...base.values, ...patch.values } : base.values;
+      if (values) {
+        for (const k of Object.keys(values)) if (values[k] === undefined) delete values[k];
+      }
+      const merged: DayLog = { ...base, ...patch, values };
+      return existing ? prev.map((l) => (l.date === date ? merged : l)) : [...prev, merged];
+    });
+  }, [setDayLogs]);
 
-  const logCalendarEvent = useCallback(
-    (event: Omit<CalendarEvent, 'id'>) => {
-      setCalendarEvents((prev) => [
-        ...prev.filter((e) => !(e.date === event.date && e.type === event.type)),
-        { ...event, id: crypto.randomUUID() },
-      ]);
-    },
-    [setCalendarEvents]
-  );
-
-  const deleteCalendarEvent = useCallback(
-    (id: string) => {
-      setCalendarEvents((prev) => prev.filter((e) => e.id !== id));
-    },
-    [setCalendarEvents]
-  );
+  const getDayLog = useCallback((date: string) => dayLogs.find((l) => l.date === date), [dayLogs]);
 
   return {
     cycles,
+    setCycles,
     dayLogs,
-    calendarEvents,
     stats,
     startPeriod,
     endPeriod,
     addPastCycle,
-    logFlow,
+    setFlow,
     deleteCycle,
-    saveDayLog,
+    updateDay,
     getDayLog,
-    logCalendarEvent,
-    deleteCalendarEvent,
   };
 }
