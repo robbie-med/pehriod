@@ -44,7 +44,7 @@ The **Android release** workflow builds a signed APK and attaches it to a GitHub
 - `ANDROID_KEYSTORE_BASE64`: the release keystore (PKCS12, alias `pehriod`), base64-encoded
 - `ANDROID_KEYSTORE_PASSWORD`: its password
 
-Then run **Actions → Android release → Run workflow**, or push a tag matching `package.json`, e.g. `v3.0.0`.
+To release, bump `version` in `package.json` and add its changelog (below) on `main`: pushing a new changelog runs the workflow. It can also be run from **Actions → Android release**, or by pushing a tag matching `package.json`.
 
 Every release must be signed with the same key, or installed copies refuse to update. Keep an offline backup of the keystore and password. The workflow refuses to publish an APK signed by any other certificate.
 

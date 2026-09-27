@@ -1,11 +1,16 @@
 name: Android release
 
 # Builds a signed APK and attaches it to a GitHub Release (v<package.json version>).
-# Run it from the Actions tab, or push a tag like v3.0.0 that matches package.json.
+# Releasing = bump package.json version and add its fastlane changelog on main.
+# Also runs from the Actions tab, or on a pushed tag like v3.0.1 that matches package.json.
 on:
   workflow_dispatch:
   push:
     tags: ['v*']
+    branches: [main]
+    paths:
+      - 'fastlane/metadata/android/en-US/changelogs/**'
+      - '.github/workflows/android.yml'
 
 permissions:
   contents: write
