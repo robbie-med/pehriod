@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Prefs, importAllData } from '../../lib/storage';
 import { downloadBackup } from '../../lib/backup';
+import { isNative } from '../../lib/native';
 import { TRACKER_IDS, TrackerId } from '../../lib/trackers';
 import { T, Language, languages } from '../../data/translations';
 import { useTheme, ThemeMode } from '../ui/ThemeProvider';
@@ -93,6 +94,9 @@ export function SettingsScreen({ t, lang, onLanguage, prefs, setPrefs, onClearAl
           <p>{t.about_private}</p>
           <p>{t.about_meds}</p>
           <p>{t.about_translations}</p>
+          {!isNative() && (
+            <a href="https://github.com/robbie-med/pehriod/releases/latest" className="block font-semibold text-accent">{t.android_app}</a>
+          )}
           <a href="mailto:pehriod@robbiemed.org" className="block font-semibold text-accent">pehriod@robbiemed.org</a>
           <p className="text-t3">3.0</p>
         </div>
