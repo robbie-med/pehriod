@@ -6,7 +6,7 @@ import { calculateDoseTotals } from './doseCalculator';
 import { MEDICATIONS } from './medications';
 import { DOSE_LIMITS } from './doseLimits';
 import { dayFlow, entryPoints, isHeavy, summarize } from './pbac';
-import { applyBleed, suggestedEnd } from './period';
+import { applyBleed, markDay, suggestedEnd } from './period';
 import { nsaidNonResponse, pendingRelief } from './relief';
 import { buildReport } from './report';
 import { BleedEntry, CycleRecord, IntakeRecord } from './types';
@@ -131,6 +131,41 @@ describe('period auto-start', () => {
     const e = [bleed('2026-02-07', { fill: 1 })];
     expect(suggestedEnd(c, e, '2026-02-08')).toBeNull();
     expect(suggestedEnd(c, e, '2026-02-09')).toBe('2026-02-07');
+  });
+});
+
+describe('marking past period days', () => {
+  const today = '2026-03-20';
+  const c = (id: string, startDate: string, endDate?: string): CycleRecord => ({ id, startDate, endDate, flowByDay: {} });
+
+  it('marks a past day with any flow, even while a period is ongoing', () => {
+    const next = markDay([c('now', '2026-03-19')], '2026-02-10', 'heavy', today);
+    expect(next).toHaveLength(2);
+    const past = next.find((x) => x.id !== 'now')!;
+    expect(past).toMatchObject({ startDate: '2026-02-10', endDate: '2026-02-10', flowByDay: { '2026-02-10': 'heavy' } });
+  });
+  it('extends a period from either side and builds it day by day', () => {
+    let cs = markDay([], '2026-02-10', 'heavy', today);
+    cs = markDay(cs, '2026-02-11', 'medium', today);
+    cs = markDay(cs, '2026-02-09', 'light', today);
+    expect(cs).toHaveLength(1);
+    expect(cs[0]).toMatchObject({ startDate: '2026-02-09', endDate: '2026-02-11' });
+  });
+  it('merges two periods when the day bridges them', () => {
+    const cs = markDay([c('a', '2026-02-05', '2026-02-07'), c('b', '2026-02-09', '2026-02-10')], '2026-02-08', 'medium', today);
+    expect(cs).toHaveLength(1);
+    expect(cs[0]).toMatchObject({ startDate: '2026-02-05', endDate: '2026-02-10' });
+  });
+  it('clearing shrinks from the edges and removes a one-day period', () => {
+    let cs = markDay([c('a', '2026-02-05', '2026-02-07')], '2026-02-05', null, today);
+    expect(cs[0].startDate).toBe('2026-02-06');
+    cs = markDay(cs, '2026-02-07', null, today);
+    expect(cs[0].endDate).toBe('2026-02-06');
+    expect(markDay(cs, '2026-02-06', null, today)).toEqual([]);
+  });
+  it('starts an ongoing period when today is marked, and ignores the future', () => {
+    expect(markDay([], today, 'medium', today)[0].endDate).toBeUndefined();
+    expect(markDay([], '2026-03-21', 'medium', today)).toEqual([]);
   });
 });
 

@@ -1,5 +1,5 @@
-import { BleedEntry, CycleRecord } from './types';
-import { daysBetween, isoOfTs } from './dates';
+import { BleedEntry, CycleRecord, FlowLevel } from './types';
+import { addDays, daysBetween, isoOfTs } from './dates';
 import { isBleeding } from './pbac';
 
 /** A bleed within this many days after a period's end extends that period instead of starting a new one. */
@@ -75,4 +75,72 @@ export function cycleStartFor(sortedStarts: string[], date: string): string | nu
     else break;
   }
   return found;
+}
+
+/**
+ * Marks or clears one past-or-present day as a period day with a flow level, for filling in
+ * periods after the fact. Marking joins the day to a period within REJOIN_DAYS on either side
+ * (merging two periods it bridges) or starts a one-day period. Clearing the first or last day
+ * shrinks the period; clearing its only day removes it. Days in the future are ignored.
+ */
+export function markDay(
+  cycles: CycleRecord[],
+  date: string,
+  flow: FlowLevel | null,
+  today: string
+): CycleRecord[] {
+  if (date > today) return cycles;
+  const inside = periodOn(cycles, date, today);
+
+  if (flow === null) {
+    if (!inside) return cycles;
+    const flowByDay = { ...inside.flowByDay };
+    delete flowByDay[date];
+    const end = inside.endDate ?? today;
+    if (inside.startDate === date && end === date) return cycles.filter((c) => c.id !== inside.id);
+    let next: CycleRecord = { ...inside, flowByDay };
+    if (date === inside.startDate) next = { ...next, startDate: addDays(date, 1) };
+    else if (inside.endDate && date === inside.endDate) next = { ...next, endDate: addDays(date, -1) };
+    return cycles.map((c) => (c.id === inside.id ? next : c));
+  }
+
+  if (inside) {
+    return cycles.map((c) => (c.id === inside.id ? { ...c, flowByDay: { ...c.flowByDay, [date]: flow } } : c));
+  }
+
+  const before = cycles.find(
+    (c) => c.endDate && c.endDate < date && daysBetween(c.endDate, date) <= REJOIN_DAYS
+  );
+  const after = cycles.find(
+    (c) => c.startDate > date && daysBetween(date, c.startDate) <= REJOIN_DAYS
+  );
+
+  if (before && after) {
+    const merged: CycleRecord = {
+      ...before,
+      endDate: after.endDate,
+      flowByDay: { ...before.flowByDay, ...after.flowByDay, [date]: flow },
+    };
+    return cycles.filter((c) => c.id !== after.id).map((c) => (c.id === before.id ? merged : c));
+  }
+  if (before) {
+    return cycles.map((c) =>
+      c.id === before.id ? { ...c, endDate: date, flowByDay: { ...c.flowByDay, [date]: flow } } : c
+    );
+  }
+  if (after) {
+    return cycles.map((c) =>
+      c.id === after.id ? { ...c, startDate: date, flowByDay: { ...c.flowByDay, [date]: flow } } : c
+    );
+  }
+  const ongoing = cycles.some((c) => !c.endDate);
+  return [
+    ...cycles,
+    {
+      id: uid(),
+      startDate: date,
+      endDate: date === today && !ongoing ? undefined : date,
+      flowByDay: { [date]: flow },
+    },
+  ];
 }

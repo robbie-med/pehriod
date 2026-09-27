@@ -4,7 +4,7 @@ import { CycleRecord, DayLog, FlowLevel } from '../lib/types';
 import { STORAGE_KEYS } from '../lib/storage';
 import { getCycleStats } from '../lib/cycleCalculator';
 import { datesInRange, todayISO } from '../lib/dates';
-import { uid } from '../lib/period';
+import { markDay as markDayIn, uid } from '../lib/period';
 
 export type DayPatch = Partial<Omit<DayLog, 'id' | 'date'>>;
 
@@ -30,18 +30,8 @@ export function useCycleData() {
     setCycles((prev) => [...prev, { id: uid(), startDate, endDate, flowByDay }]);
   }, [setCycles]);
 
-  const setFlow = useCallback((date: string, flow: FlowLevel | null) => {
-    const today = todayISO();
-    setCycles((prev) => {
-      const idx = prev.findIndex((c) => c.startDate <= date && date <= (c.endDate ?? today));
-      if (idx === -1) return prev;
-      const flowByDay = { ...prev[idx].flowByDay };
-      if (flow) flowByDay[date] = flow;
-      else delete flowByDay[date];
-      const next = [...prev];
-      next[idx] = { ...prev[idx], flowByDay };
-      return next;
-    });
+  const markDay = useCallback((date: string, flow: FlowLevel | null) => {
+    setCycles((prev) => markDayIn(prev, date, flow, todayISO()));
   }, [setCycles]);
 
   const deleteCycle = useCallback((id: string) => {
@@ -71,7 +61,7 @@ export function useCycleData() {
     startPeriod,
     endPeriod,
     addPastCycle,
-    setFlow,
+    markDay,
     deleteCycle,
     updateDay,
     getDayLog,

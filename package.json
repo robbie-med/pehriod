@@ -1,6 +1,6 @@
 {
   "name": "pehriod",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Period tracking that measures blood loss and pain relief, with a bilingual report for your doctor. Offline and private.",
   "main": "index.js",
   "scripts": {

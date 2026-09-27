@@ -22,8 +22,7 @@ interface Props {
   dayLogs: DayLog[];
   trackers: TrackerId[];
   units: Units;
-  onSetFlow: (date: string, flow: FlowLevel | null) => void;
-  onStartPeriod: (date: string) => void;
+  onMarkDay: (date: string, flow: FlowLevel | null) => void;
   onEndPeriod: (date: string) => void;
   onAddPast: (start: string, end: string, flow: FlowLevel) => void;
   onDeleteCycle: (id: string) => void;
@@ -57,6 +56,7 @@ export function CycleScreen(p: Props) {
   const predicted = useMemo(() => {
     const set = new Set<string>();
     const fertile = new Set<string>();
+    const ovulation = new Set<string>();
     const len = stats.averagePeriodLength ?? 5;
     for (const uc of stats.upcomingCycles) {
       for (let i = 0; i < len; i++) {
@@ -64,8 +64,9 @@ export function CycleScreen(p: Props) {
         if (d > today) set.add(d);
       }
       for (let d = uc.fertileStart; d <= uc.fertileEnd; d = addDays(d, 1)) if (d >= today) fertile.add(d);
+      if (uc.ovulationDay >= today) ovulation.add(uc.ovulationDay);
     }
-    return { set, fertile };
+    return { set, fertile, ovulation };
   }, [stats, today]);
 
   const [y, m] = cursor.split('-').map(Number);
@@ -97,7 +98,6 @@ export function CycleScreen(p: Props) {
 
   const history = sortCycles(cycles).reverse();
   const dayCycle = day ? periodOn(cycles, day, today) : undefined;
-  const ongoing = cycles.find((c) => !c.endDate);
   const dayEntries = day ? entriesOn(bleeds, day) : [];
 
   return (
@@ -118,6 +118,7 @@ export function CycleScreen(p: Props) {
             const flow = flowOn(d);
             const isPred = !inPeriod && predicted.set.has(d);
             const isFertile = !inPeriod && predicted.fertile.has(d);
+            const isOvulation = !inPeriod && predicted.ovulation.has(d);
             return (
               <button
                 key={d}
@@ -125,7 +126,9 @@ export function CycleScreen(p: Props) {
                 className="press relative mx-auto flex h-12 w-full max-w-12 flex-col items-center justify-center rounded-xl"
                 style={{
                   background: inPeriod || flow ? 'color-mix(in srgb, var(--flow-medium) 20%, transparent)' : undefined,
-                  boxShadow: isPred ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--flow-medium) 60%, transparent)' : d === today ? 'inset 0 0 0 2px var(--accent)' : undefined,
+                  boxShadow: d === today ? 'inset 0 0 0 2px var(--accent)'
+                    : isOvulation ? 'inset 0 0 0 2px var(--good)'
+                    : isPred ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--flow-medium) 60%, transparent)' : undefined,
                 }}
               >
                 <span className={cx('num text-[16px]', d === today && 'font-extrabold', d > today && !isPred && 'text-t2')}>{Number(d.slice(8))}</span>
@@ -137,6 +140,12 @@ export function CycleScreen(p: Props) {
               </button>
             );
           })}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-t3">
+          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: 'color-mix(in srgb, var(--flow-medium) 20%, transparent)' }} />{t.on_period}</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ boxShadow: 'inset 0 0 0 1.5px color-mix(in srgb, var(--flow-medium) 60%, transparent)' }} />{t.predicted}</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-good" />{t.fertile_window}</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ boxShadow: 'inset 0 0 0 2px var(--good)' }} />{t.ovulation}</span>
         </div>
       </Section>
 
@@ -150,6 +159,12 @@ export function CycleScreen(p: Props) {
           <div className="mt-2 flex justify-between border-b border-line py-3">
             <span className="text-t2">{t.next_period}</span>
             <span className="num font-semibold">{short(stats.nextPredictedStart)}</span>
+          </div>
+        )}
+        {stats.ovulationDay && (
+          <div className="flex justify-between border-b border-line py-3">
+            <span className="text-t2">{t.ovulation}</span>
+            <span className="num">{short(stats.ovulationDay)}</span>
           </div>
         )}
         {stats.fertileWindowStart && stats.fertileWindowEnd && (
@@ -195,27 +210,31 @@ export function CycleScreen(p: Props) {
         {day && (
           <div>
             <h3 className="casual text-xl font-bold">{isoToDate(day).toLocaleDateString(loc, { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
-            {dayCycle ? (
-              <>
-                <div className="mt-4 grid grid-cols-4 gap-1.5">
-                  {FLOWS.map((f) => (
-                    <Chip key={f} on={dayCycle.flowByDay[day] === f} onClick={() => p.onSetFlow(day, dayCycle.flowByDay[day] === f ? null : f)} className="px-1 text-[14px]">
-                      {t[`flow_${f}`]}
-                    </Chip>
-                  ))}
-                </div>
-                {!dayCycle.endDate && day >= dayCycle.startDate && day <= today && (
-                  <Button kind="quiet" className="mt-3 w-full" onClick={() => { p.onEndPeriod(day); setDay(null); }}>{t.ended_this_day}</Button>
-                )}
-              </>
-            ) : (
-              day <= today && (
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button kind="quiet" onClick={() => p.onSpotting(day)}>{t.spotting}</Button>
-                  <Button disabled={!!ongoing} onClick={() => { p.onStartPeriod(day); setDay(null); }}>{t.started_this_day}</Button>
-                </div>
-              )
-            )}
+            {day <= today && (() => {
+              const liners = dayEntries.filter((e) => e.kind === 'liner');
+              const current: FlowLevel | null = dayCycle ? dayCycle.flowByDay[day] ?? null : liners.length ? 'spotting' : null;
+              const pick = (f: FlowLevel) => {
+                if (!dayCycle && f === 'spotting') {
+                  if (liners.length) liners.forEach((e) => p.onRemoveBleed(e));
+                  else p.onSpotting(day);
+                  return;
+                }
+                p.onMarkDay(day, current === f ? null : f);
+              };
+              return (
+                <>
+                  <div className={cx('mt-4 grid gap-1.5', dayCycle ? 'grid-cols-5' : 'grid-cols-4')}>
+                    {FLOWS.map((f) => (
+                      <Chip key={f} on={current === f} onClick={() => pick(f)} className="px-1 text-[14px]">{t[`flow_${f}`]}</Chip>
+                    ))}
+                    {dayCycle && <Chip onClick={() => p.onMarkDay(day, null)} className="px-1 text-[14px]">{t.no_flow}</Chip>}
+                  </div>
+                  {dayCycle && !dayCycle.endDate && day >= dayCycle.startDate && (
+                    <Button kind="quiet" className="mt-3 w-full" onClick={() => { p.onEndPeriod(day); setDay(null); }}>{t.ended_this_day}</Button>
+                  )}
+                </>
+              );
+            })()}
             {dayEntries.length > 0 && (
               <div className="mt-4">
                 {dayEntries.sort((a, b) => a.ts - b.ts).map((e) => (
